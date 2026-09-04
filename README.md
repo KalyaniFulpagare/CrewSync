@@ -142,6 +142,46 @@ docker compose up --build
 
 Docker Compose starts MongoDB, the API, and an Nginx-served production frontend. API and Socket.IO traffic are proxied through the frontend container.
 
+## Deploy it
+
+The simplest hosted setup is **MongoDB Atlas** for the database, **Render** for the Express API, and **Vercel** (or a Render Static Site) for the React app.
+
+### Render blueprint (recommended)
+
+This repository includes `render.yaml`, which creates both Render services from one setup:
+
+1. Create a free MongoDB Atlas cluster and create a database user.
+2. In Atlas Network Access, allow Render to connect (for a quick demo, allow `0.0.0.0/0`; tighten this later for production).
+3. In Render, choose **New → Blueprint**, connect this GitHub repository, and select `render.yaml`.
+4. When Render asks for values, enter:
+   - `MONGO_URI`: the Atlas connection string
+   - `VITE_API_URL`: `https://<your-api-service>.onrender.com/api`
+   - `VITE_SOCKET_URL`: `https://<your-api-service>.onrender.com`
+   - `CLIENT_ORIGIN`: `https://<your-frontend-service>.onrender.com`
+5. Deploy. Render automatically redeploys both services whenever `main` changes.
+
+The API runs as a Render Web Service, which supports the app's Socket.IO/WebSocket connections. The frontend runs as a Render Static Site with an SPA rewrite rule.
+
+### API environment variables
+
+```text
+NODE_ENV=production
+PORT=5000
+MONGO_URI=<your MongoDB Atlas connection string>
+JWT_SECRET=<long random secret>
+JWT_EXPIRES_IN=7d
+CLIENT_ORIGIN=<your deployed frontend URL>
+```
+
+### Frontend environment variables
+
+```text
+VITE_API_URL=https://<your-api-url>/api
+VITE_SOCKET_URL=https://<your-api-url>
+```
+
+Build the frontend with `npm run build` and deploy the `frontend` directory. The API build command is `npm install`; its start command is `npm start` from `backend`.
+
 ## Tests
 
 ```bash
