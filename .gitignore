@@ -1,0 +1,19 @@
+# Dependencies and generated output
+node_modules/
+frontend/node_modules/
+backend/node_modules/
+frontend/dist/
+coverage/
+
+# Local secrets and environment overrides
+.env
+.env.*
+!.env.example
+backend/.env
+frontend/.env
+
+# Local tooling and operating-system files
+.DS_Store
+Thumbs.db
+.vscode/
+*.log

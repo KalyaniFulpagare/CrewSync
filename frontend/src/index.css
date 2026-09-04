@@ -1,0 +1,12 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+:root { color: #1B1D2A; background: #F6F7FB; }
+* { -webkit-font-smoothing: antialiased; }
+body { min-width: 320px; background: radial-gradient(circle at 85% -15%, #e4e8ff 0, transparent 29rem), #F6F7FB; }
+button, a, input, select, textarea { transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease, transform 160ms ease; }
+:focus-visible { outline: 2px solid #4A5AF0; outline-offset: 2px; }
+@layer components {
+  .premium-card { @apply bg-surface border border-black/[0.055] rounded-2xl shadow-[0_1px_2px_rgba(18,20,43,0.03),0_12px_32px_rgba(18,20,43,0.04)]; }
+  .premium-button { @apply bg-accent text-white text-sm font-semibold px-4 py-2.5 rounded-xl shadow-[0_8px_18px_rgba(74,90,240,0.22)] hover:bg-[#3f4ee4] hover:-translate-y-px active:translate-y-0; }
+}
