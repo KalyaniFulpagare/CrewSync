@@ -1,14 +1,14 @@
 # CrewSync
 
-> A full-stack workspace for college clubs to coordinate teams, plan events, and spot operational risk before a deadline becomes a crisis.
+> Keep the club chaos organised. Mostly.
 
-CrewSync is built around the way student organizations actually operate: a club owns standing teams such as Design, PR, and Content; teams contribute to multiple events; and one person can be overloaded across several clubs without any single event dashboard showing the full picture.
+CrewSync is a full-stack coordination app for college clubs: teams, events, task boards, deadlines, chat, and the slightly scary question of *“who is doing way too much right now?”*
 
-It goes beyond task CRUD by making workload, deadline pressure, task dependencies, and project risk visible and actionable.
+It is built for the way student clubs actually work. A club has standing teams (Design, PR, Content, etc.), those teams work across events, and one person can accidentally end up with five “small” tasks from three different places. CrewSync makes that visible before everything is due tomorrow.
 
-## Why CrewSync?
+## What it helps with
 
-Most task boards can tell a club that a task is late. CrewSync helps explain whether the event is at risk, who still has capacity, and what work is blocking the entire plan.
+It is not just a prettier to-do list. CrewSync can tell you whether an event is slipping, which task is actually blocking it, and who still has enough space to take work.
 
 | Problem | CrewSync approach |
 | --- | --- |
@@ -18,7 +18,7 @@ Most task boards can tell a club that a task is late. CrewSync helps explain whe
 | Risk labels feel vague | Produces explainable On Track / At Risk / Critical reasons |
 | A student is busy across more than one club | Aggregates every open task into a cross-club **My Total Load** view |
 
-## Highlights
+## The good stuff
 
 - **Kanban event workspace** with drag-and-drop task status changes
 - **Workload-aware assignment** that accounts for near-term deadlines
@@ -32,7 +32,7 @@ Most task boards can tell a club that a task is late. CrewSync helps explain whe
 - **Task integrity rules**: dependency validation, assignment eligibility, and optimistic status-update locking
 - **Docker-ready** local stack: React frontend, Express API, and MongoDB
 
-## Product flow
+## How the app is shaped
 
 ```text
 Club
@@ -46,7 +46,7 @@ Club
      └─ Members, activity, comments, and discussion
 ```
 
-## Tech stack
+## Built with
 
 | Layer | Tools |
 | --- | --- |
@@ -58,7 +58,7 @@ Club
 | Testing | Jest, Supertest, mongodb-memory-server |
 | Local deployment | Docker Compose, Nginx |
 
-## Core logic worth discussing
+## The slightly nerdy part
 
 ### Workload-aware assignment
 
@@ -86,7 +86,7 @@ The UI shows the reasons, not just a colour or generic warning.
 - Task status changes use optimistic locking (`expectedVersion`) to prevent silent stale overwrites.
 - Event comments, activity, channels, and Socket.IO rooms require appropriate membership.
 
-## Getting started
+## Run it yourself
 
 ### Prerequisites
 
@@ -151,18 +151,18 @@ npm test
 
 The test suite covers the scheduling and workload algorithms plus API-level integrity scenarios, including optimistic locking, invalid dependencies, cross-event dependencies, assignment eligibility, and dependency-status enforcement.
 
-## Current limitations
+## Things it does not pretend to solve yet
 
 - Critical-path timing is based on abstract estimated hours, not calendars, weekends, or individual availability windows.
 - MongoDB was selected for the MERN stack; relationships and referential integrity are therefore enforced at the application layer rather than through SQL foreign keys.
 
-## Future direction
+## If I keep building it
 
 - Availability-aware, calendar-based scheduling
 - Notification delivery when workload becomes high or an invitation arrives
 - Read receipts and mentions in team chat
 - Analytics and reporting across a club semester
 
-## Author
+## Made by
 
 Built independently by [Kalyani Fulpagare](https://github.com/KalyaniFulpagare).

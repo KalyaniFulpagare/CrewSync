@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { LayoutGrid, ListChecks, Building2, Flame, Bell, LogOut } from 'lucide-react';
+import BrandMark from './BrandMark';
 import { useAuth } from '../context/AuthContext';
 import client from '../api/client';
 
@@ -21,7 +22,7 @@ export default function Sidebar() {
 
   return (
     <aside className="w-64 bg-ink flex flex-col shrink-0 h-screen sticky top-0 border-r border-white/5">
-      <div className="px-5 py-7"><span className="inline-flex items-center gap-2 font-display text-xl font-bold text-white"><span className="grid place-items-center h-7 w-7 rounded-lg bg-accent text-sm shadow-lg">C</span>CrewSync</span><p className="text-[10px] uppercase tracking-[0.16em] text-white/35 mt-3 px-1">Club operations</p></div>
+      <div className="px-5 py-7"><span className="inline-flex items-center gap-2.5 font-display text-xl font-bold text-white"><BrandMark size={31} />CrewSync</span><p className="text-[10px] uppercase tracking-[0.16em] text-white/35 mt-3 px-1">Club operations</p></div>
       <nav className="flex-1 px-3 flex flex-col gap-1">
         <NavLink to="/" end className={linkClasses}><LayoutGrid size={18} /> Events</NavLink>
         <NavLink to="/clubs" className={linkClasses}><Building2 size={18} /> Clubs</NavLink>

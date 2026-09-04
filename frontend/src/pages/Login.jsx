@@ -1,6 +1,7 @@
 ﻿import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import BrandMark from '../components/BrandMark';
 
 export default function Login() {
   const { login } = useAuth();
@@ -20,6 +21,7 @@ export default function Login() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-paper px-4">
       <div className="w-full max-w-sm">
+        <div className="flex justify-center mb-3"><BrandMark size={48} /></div>
         <h1 className="font-display text-2xl font-bold text-center mb-1">CrewSync</h1>
         <p className="text-center text-text-muted text-sm mb-8">Coordinate your club's events and tasks.</p>
         <form onSubmit={handleSubmit} className="bg-surface border border-black/5 rounded-xl p-6 flex flex-col gap-4">
