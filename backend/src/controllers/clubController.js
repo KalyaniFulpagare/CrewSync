@@ -1,4 +1,4 @@
-const Club = require('../models/Club');
+﻿const Club = require('../models/Club');
 const ClubMembership = require('../models/ClubMembership');
 const Team = require('../models/Team');
 const TeamMembership = require('../models/TeamMembership');
@@ -37,6 +37,9 @@ exports.addClubCoordinator = async (req, res) => {
     const { email, position } = req.body;
     const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ success: false, message: 'No user found with that email.' });
+    if (position === 'FACULTY_COORDINATOR' && user.role !== 'FACULTY_ADMIN') {
+      return res.status(400).json({ success: false, message: 'Only an actual faculty admin account can be assigned as Faculty Coordinator.' });
+    }
     const membership = await ClubMembership.create({ clubId: req.params.clubId, userId: user._id, position });
     res.status(201).json({ success: true, membership: { ...membership.toObject(), userId: { _id: user._id, name: user.name } } });
   } catch (err) {
