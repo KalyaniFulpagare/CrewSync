@@ -1,7 +1,11 @@
-const jwt = require('jsonwebtoken');
+﻿const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
 const signToken = (id) => jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || '7d' });
+
+// Escapes regex special characters so user-supplied search text can never
+// be interpreted as a regex pattern (prevents regex injection / ReDoS).
+const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 exports.register = async (req, res) => {
   try {
@@ -36,6 +40,6 @@ exports.getMe = async (req, res) => {
 exports.searchUsers = async (req, res) => {
   const { q } = req.query;
   if (!q || q.length < 2) return res.status(200).json({ success: true, users: [] });
-  const users = await User.find({ email: new RegExp(q, 'i') }).limit(8).select('name email');
+  const users = await User.find({ email: new RegExp(escapeRegex(q), 'i') }).limit(8).select('name email');
   res.status(200).json({ success: true, users });
 };
