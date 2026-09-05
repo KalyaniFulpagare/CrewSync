@@ -1,4 +1,4 @@
-require('dotenv').config();
+ï»¿require('dotenv').config();
 const connectDB = require('../config/db');
 const User = require('../models/User');
 const Club = require('../models/Club');
@@ -22,6 +22,7 @@ const run = async () => {
   const headCoordinator = await User.create({ name: 'Tejas Gadgil', email: 'head@ccoew.edu', password: 'password123' });
   const jointHead = await User.create({ name: 'Srushti Jadhav', email: 'jointhead@ccoew.edu', password: 'password123' });
   const facultyCoordinator = await User.create({ name: 'Dr Makarand Velankar', email: 'faculty@ccoew.edu', password: 'password123' });
+  const collegeAdmin = await User.create({ name: 'College Admin', email: 'admin@ccoew.edu', password: 'password123', role: 'FACULTY_ADMIN' });
 
   const designHead = await User.create({ name: 'Kalz (Design Head)', email: 'designhead@ccoew.edu', password: 'password123' });
   const designMember = await User.create({ name: 'Riya Member', email: 'riya@ccoew.edu', password: 'password123' });
@@ -48,8 +49,8 @@ const run = async () => {
   ]);
 
   const event = await Event.create({
-    title: 'Kairos — TEDxCCOEW 2026',
-    description: 'Annual TEDx event — talks, logistics, and volunteer coordination.',
+    title: 'Kairos â€” TEDxCCOEW 2026',
+    description: 'Annual TEDx event â€” talks, logistics, and volunteer coordination.',
     clubId: club._id,
     eventDate: new Date(Date.now() + 14 * 86400000),
     venue: 'Main Auditorium',
@@ -118,10 +119,11 @@ const run = async () => {
 
   console.log('Seed complete: 2 clubs, 3 coordinators, 4 teams, 2 events, 6 tasks, hub messages.');
   console.log('Login as head@ccoew.edu / password123 (Head Coordinator) to see the full picture.');
-  console.log('Login as designhead@ccoew.edu / password123 to see "My Total Load" — they\'re on BOTH clubs\' Design Teams.');
+  console.log('Login as designhead@ccoew.edu / password123 to see "My Total Load" â€” they\'re on BOTH clubs\' Design Teams.');
   console.log('Login as meera@ccoew.edu or prhead@ccoew.edu / password123 to see a pending invite waiting on the Invites page.');
-  console.log('Other logins: riya@ccoew.edu — all password123.');
+  console.log('Other logins: riya@ccoew.edu â€” all password123.');
   process.exit(0);
 };
 
 run().catch((err) => { console.error(err); process.exit(1); });
+

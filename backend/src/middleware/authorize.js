@@ -180,3 +180,10 @@ exports.requireChannelMember = async (req, res, next) => {
     res.status(500).json({ success: false, message: err.message });
   }
 };
+
+exports.requireFacultyAdmin = (req, res, next) => {
+  if (req.user.role !== 'FACULTY_ADMIN') {
+    return res.status(403).json({ success: false, message: 'Only faculty admins can do this.' });
+  }
+  next();
+};
