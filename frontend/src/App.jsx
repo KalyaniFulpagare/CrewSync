@@ -1,4 +1,4 @@
-import React from 'react';
+ï»¿import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { SocketProvider } from './context/SocketContext';
@@ -12,10 +12,13 @@ import ClubList from './pages/ClubList';
 import ClubHub from './pages/ClubHub';
 import MyLoad from './pages/MyLoad';
 import Invites from './pages/Invites';
+import Recruitment from './pages/Recruitment';
+import DriveDetail from './pages/DriveDetail';
+import DriveApplications from './pages/DriveApplications';
 
 function ProtectedLayout({ children }) {
   const { user, loading } = useAuth();
-  if (loading) return <div className="min-h-screen flex items-center justify-center text-text-muted text-sm">Loading…</div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center text-text-muted text-sm">Loading...</div>;
   if (!user) return <Navigate to="/login" replace />;
   return (
     <div className="flex min-h-screen">
@@ -37,6 +40,9 @@ function AppRoutes() {
       <Route path="/clubs/:clubId" element={<ProtectedLayout><ClubHub /></ProtectedLayout>} />
       <Route path="/my-load" element={<ProtectedLayout><MyLoad /></ProtectedLayout>} />
       <Route path="/invites" element={<ProtectedLayout><Invites /></ProtectedLayout>} />
+      <Route path="/recruitment" element={<ProtectedLayout><Recruitment /></ProtectedLayout>} />
+      <Route path="/recruitment/:driveId" element={<ProtectedLayout><DriveDetail /></ProtectedLayout>} />
+      <Route path="/clubs/:clubId/drives/:driveId" element={<ProtectedLayout><DriveApplications /></ProtectedLayout>} />
     </Routes>
   );
 }

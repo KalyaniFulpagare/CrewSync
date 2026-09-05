@@ -1,4 +1,4 @@
-require('dotenv').config();
+﻿require('dotenv').config();
 const express = require('express');
 const http = require('http');
 const cors = require('cors');
@@ -21,6 +21,7 @@ const commentRoutes = require('./routes/commentRoutes');
 const activityRoutes = require('./routes/activityRoutes');
 const clubRoutes = require('./routes/clubRoutes');
 const messageRoutes = require('./routes/messageRoutes');
+const recruitmentRoutes = require('./routes/recruitmentRoutes');
 
 const app = express();
 const server = http.createServer(app);
@@ -42,6 +43,7 @@ app.use('/api/comments', commentRoutes);
 app.use('/api/activity', activityRoutes);
 app.use('/api/clubs', clubRoutes);
 app.use('/api/messages', messageRoutes);
+app.use('/api/recruitment', recruitmentRoutes);
 
 app.get('/api/health', (req, res) => res.json({ success: true, status: 'ok' }));
 

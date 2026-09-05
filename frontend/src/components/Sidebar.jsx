@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutGrid, ListChecks, Building2, Flame, Bell, LogOut } from 'lucide-react';
+import { LayoutGrid, ListChecks, Building2, Flame, Bell, LogOut, ClipboardList } from 'lucide-react';
 import BrandMark from './BrandMark';
 import { useAuth } from '../context/AuthContext';
 import client from '../api/client';
@@ -26,6 +26,7 @@ export default function Sidebar() {
       <nav className="flex-1 px-3 flex flex-col gap-1">
         <NavLink to="/" end className={linkClasses}><LayoutGrid size={18} /> Events</NavLink>
         <NavLink to="/clubs" className={linkClasses}><Building2 size={18} /> Clubs</NavLink>
+        <NavLink to="/recruitment" className={linkClasses}><ClipboardList size={18} /> Recruitment</NavLink>
         <NavLink to="/my-tasks" className={linkClasses}><ListChecks size={18} /> My Tasks</NavLink>
         <NavLink to="/my-load" className={linkClasses}><Flame size={18} /> My Load</NavLink>
         <NavLink to="/invites" className={linkClasses}>

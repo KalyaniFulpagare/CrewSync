@@ -1,4 +1,4 @@
-const EventMember = require('../models/EventMember');
+﻿const EventMember = require('../models/EventMember');
 const ClubMembership = require('../models/ClubMembership');
 const TeamMembership = require('../models/TeamMembership');
 const Team = require('../models/Team');
@@ -26,7 +26,7 @@ exports.requireEventMemberForTask = async (req, res, next) => {
 
     const membership = await EventMember.findOne({ eventId: task.eventId, userId: req.user._id, status: 'ACCEPTED' });
     if (!membership) {
-      return res.status(403).json({ success: false, message: 'You are not a member of this task\'s event.' });
+      return res.status(403).json({ success: false, message: 'You are not a member of this task''s event.' });
     }
     req.task = task;
     next();
@@ -115,6 +115,28 @@ exports.requireClubMemberOrCoordinator = async (req, res, next) => {
     if (teamMembership) return next();
 
     return res.status(403).json({ success: false, message: 'You are not part of this club.' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+exports.requireDriveCoordinator = async (req, res, next) => {
+  try {
+    const RecruitmentDrive = require('../models/RecruitmentDrive');
+    const driveId = req.params.driveId;
+    const drive = await RecruitmentDrive.findById(driveId);
+    if (!drive) return res.status(404).json({ success: false, message: 'Recruitment drive not found.' });
+
+    const membership = await ClubMembership.findOne({
+      clubId: drive.clubId,
+      userId: req.user._id,
+      position: { $in: ['HEAD_COORDINATOR', 'JOINT_HEAD_COORDINATOR'] }
+    });
+    if (!membership) {
+      return res.status(403).json({ success: false, message: 'Only the Head or Joint Head Coordinator can do this.' });
+    }
+    req.drive = drive;
+    next();
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }

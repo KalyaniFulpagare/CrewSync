@@ -1,6 +1,6 @@
 ﻿import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Plus, X, UserPlus, Flame, Crown } from 'lucide-react';
+import { Plus, X, UserPlus, Flame, Crown, ClipboardList } from 'lucide-react';
 import client from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import OrgChart from '../components/OrgChart';
@@ -28,6 +28,11 @@ export default function ClubHub() {
   const [showEventForm, setShowEventForm] = useState(false);
   const [eventForm, setEventForm] = useState({ title: '', description: '', eventDate: '', venue: '', budget: '' });
 
+  const [drives, setDrives] = useState([]);
+  const [showDriveForm, setShowDriveForm] = useState(false);
+  const emptyQuestion = { label: '', type: 'TEXT', options: '', required: true };
+  const [driveForm, setDriveForm] = useState({ title: '', description: '', teams: [], questions: [{ ...emptyQuestion }] });
+
   const load = useCallback(async () => {
     const [hierarchyRes, eventsRes] = await Promise.all([
       client.get(`/clubs/${clubId}/hierarchy`),
@@ -38,9 +43,13 @@ export default function ClubHub() {
     const heatmapRes = (isCoordinator || isTeamLead)
       ? await client.get(`/clubs/${clubId}/heatmap`)
       : { data: { heatmap: [] } };
+    const drivesRes = isCoordinator
+      ? await client.get(`/recruitment/clubs/${clubId}/drives`)
+      : { data: { drives: [] } };
     setHierarchy(hierarchyRes.data);
     setHeatmap(heatmapRes.data.heatmap);
     setEvents(eventsRes.data.events);
+    setDrives(drivesRes.data.drives);
     if (hierarchyRes.data.teams.length && !activeTeamId) setActiveTeamId(hierarchyRes.data.teams[0]._id);
   }, [clubId, user?.id]);
 
@@ -92,6 +101,39 @@ export default function ClubHub() {
     await client.post('/events', { ...eventForm, clubId, budget: Number(eventForm.budget) || 0 });
     setShowEventForm(false);
     setEventForm({ title: '', description: '', eventDate: '', venue: '', budget: '' });
+    load();
+  };
+
+  const toggleDriveTeam = (teamId) => {
+    setDriveForm((prev) => ({
+      ...prev,
+      teams: prev.teams.includes(teamId) ? prev.teams.filter((t) => t !== teamId) : [...prev.teams, teamId]
+    }));
+  };
+
+  const updateDriveQuestion = (idx, patch) => {
+    setDriveForm((prev) => ({
+      ...prev,
+      questions: prev.questions.map((q, i) => (i === idx ? { ...q, ...patch } : q))
+    }));
+  };
+
+  const addDriveQuestion = () => setDriveForm((prev) => ({ ...prev, questions: [...prev.questions, { ...emptyQuestion }] }));
+  const removeDriveQuestion = (idx) => setDriveForm((prev) => ({ ...prev, questions: prev.questions.filter((_, i) => i !== idx) }));
+
+  const handleCreateDrive = async (e) => {
+    e.preventDefault();
+    const questions = driveForm.questions
+      .filter((q) => q.label.trim())
+      .map((q) => ({
+        label: q.label.trim(),
+        type: q.type,
+        required: q.required,
+        options: q.type === 'SELECT' ? q.options.split(',').map((o) => o.trim()).filter(Boolean) : []
+      }));
+    await client.post(`/recruitment/clubs/${clubId}/drives`, { ...driveForm, questions });
+    setDriveForm({ title: '', description: '', teams: [], questions: [{ ...emptyQuestion }] });
+    setShowDriveForm(false);
     load();
   };
 
@@ -161,6 +203,32 @@ export default function ClubHub() {
               </div>
             )}
           </div>
+
+          {isCoordinator && (
+            <div className="bg-surface border border-black/5 rounded-xl p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="font-display font-semibold text-text flex items-center gap-2"><ClipboardList size={16} className="text-accent" /> Recruitment drives</h2>
+                <button onClick={() => setShowDriveForm(true)} className="flex items-center gap-1.5 text-xs font-medium text-accent">
+                  <Plus size={14} /> New drive
+                </button>
+              </div>
+              {drives.length === 0 ? (
+                <p className="text-sm text-text-muted">No recruitment drives yet.</p>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {drives.map((d) => (
+                    <Link key={d._id} to={`/clubs/${clubId}/drives/${d._id}`}
+                      className="flex items-center justify-between px-3 py-2 rounded-lg border border-black/5 hover:border-accent">
+                      <span className="text-sm font-medium">{d.title}</span>
+                      <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${d.status === 'OPEN' ? 'bg-emerald-50 text-success' : 'bg-slate-100 text-text-muted'}`}>
+                        {d.status === 'OPEN' ? 'Open' : 'Closed'}
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="flex flex-col gap-4">
@@ -233,6 +301,70 @@ export default function ClubHub() {
         </div>
       )}
 
+      {showDriveForm && (
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center p-4 z-50 overflow-y-auto">
+          <div className="bg-surface rounded-xl p-6 w-full max-w-lg my-8">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-display font-semibold text-lg">New recruitment drive</h2>
+              <button onClick={() => setShowDriveForm(false)}><X size={18} /></button>
+            </div>
+            <form onSubmit={handleCreateDrive} className="flex flex-col gap-3">
+              <input required placeholder="e.g. Design Team Recruitment 2026" value={driveForm.title}
+                onChange={(e) => setDriveForm({ ...driveForm, title: e.target.value })}
+                className="px-3 py-2 rounded-lg border border-black/10 text-sm outline-none focus:border-accent" />
+              <textarea placeholder="Description" rows={2} value={driveForm.description}
+                onChange={(e) => setDriveForm({ ...driveForm, description: e.target.value })}
+                className="px-3 py-2 rounded-lg border border-black/10 text-sm outline-none focus:border-accent resize-none" />
+
+              <div>
+                <p className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-2">Teams recruiting</p>
+                <div className="flex flex-wrap gap-2">
+                  {hierarchy.teams.map((t) => (
+                    <button type="button" key={t._id} onClick={() => toggleDriveTeam(t._id)}
+                      className={`text-xs font-medium px-2.5 py-1 rounded-full border ${driveForm.teams.includes(t._id) ? 'bg-ink text-white border-ink' : 'border-black/10 text-text-muted'}`}>
+                      {t.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs font-semibold text-text-muted uppercase tracking-wide">Application questions</p>
+                  <button type="button" onClick={addDriveQuestion} className="text-xs font-medium text-accent flex items-center gap-1"><Plus size={12} /> Add question</button>
+                </div>
+                <div className="flex flex-col gap-2">
+                  {driveForm.questions.map((q, idx) => (
+                    <div key={idx} className="border border-black/10 rounded-lg p-2.5 flex flex-col gap-1.5">
+                      <div className="flex gap-1.5">
+                        <input placeholder="Question label" value={q.label} onChange={(e) => updateDriveQuestion(idx, { label: e.target.value })}
+                          className="flex-1 px-2.5 py-1.5 rounded-md border border-black/10 text-xs outline-none focus:border-accent" />
+                        <select value={q.type} onChange={(e) => updateDriveQuestion(idx, { type: e.target.value })}
+                          className="px-2 py-1.5 rounded-md border border-black/10 text-xs outline-none focus:border-accent bg-white">
+                          <option value="TEXT">Short text</option>
+                          <option value="TEXTAREA">Long text</option>
+                          <option value="SELECT">Dropdown</option>
+                        </select>
+                        <button type="button" onClick={() => removeDriveQuestion(idx)} className="text-text-muted hover:text-danger px-1"><X size={14} /></button>
+                      </div>
+                      {q.type === 'SELECT' && (
+                        <input placeholder="Options, comma separated" value={q.options} onChange={(e) => updateDriveQuestion(idx, { options: e.target.value })}
+                          className="px-2.5 py-1.5 rounded-md border border-black/10 text-xs outline-none focus:border-accent" />
+                      )}
+                      <label className="flex items-center gap-1.5 text-xs text-text-muted">
+                        <input type="checkbox" checked={q.required} onChange={(e) => updateDriveQuestion(idx, { required: e.target.checked })} /> Required
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <button className="bg-accent text-white text-sm font-medium py-2.5 rounded-lg hover:bg-accent/90">Open drive</button>
+            </form>
+          </div>
+        </div>
+      )}
+
       {showEventForm && (
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center p-4 z-50">
           <div className="bg-surface rounded-xl p-6 w-full max-w-md">
@@ -259,4 +391,3 @@ export default function ClubHub() {
     </div>
   );
 }
-
