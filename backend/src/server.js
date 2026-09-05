@@ -1,4 +1,4 @@
-﻿require('dotenv').config();
+require('dotenv').config();
 const express = require('express');
 const http = require('http');
 const cors = require('cors');
@@ -45,6 +45,7 @@ app.use('/api/clubs', clubRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/recruitment', recruitmentRoutes);
 
+app.get('/', (req, res) => res.json({ success: true, message: 'CrewSync API is running. See /api/health for status.' }));
 app.get('/api/health', (req, res) => res.json({ success: true, status: 'ok' }));
 
 async function canAccessChannel(userId, channelType, channelId) {
