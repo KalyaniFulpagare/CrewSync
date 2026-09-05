@@ -1,4 +1,4 @@
-const Event = require('../models/Event');
+﻿const Event = require('../models/Event');
 const EventMember = require('../models/EventMember');
 const Task = require('../models/Task');
 const User = require('../models/User');
@@ -189,6 +189,10 @@ exports.removeEventMember = async (req, res) => {
 
     const membership = await EventMember.findById(req.params.membershipId);
     if (!membership) return res.status(404).json({ success: false, message: 'Membership not found.' });
+
+    if (String(membership.userId) === String(event.host)) {
+      return res.status(400).json({ success: false, message: 'The event host cannot be removed - delete the event instead, or transfer hosting first.' });
+    }
 
     await Task.updateMany(
       { eventId: event._id, assignedTo: membership.userId, status: { $ne: 'DONE' } },

@@ -9,7 +9,7 @@ const { detectConflicts } = require('../utils/conflictDetector');
 exports.createTask = async (req, res) => {
   try {
     const { eventId } = req.params;
-    const { teamId, dependsOn } = req.body;
+    const { teamId, dependsOn, assignedTo } = req.body;
 
     if (teamId) {
       const [event, team] = await Promise.all([Event.findById(eventId), Team.findById(teamId)]);
@@ -27,6 +27,11 @@ exports.createTask = async (req, res) => {
       if (wrongEvent) {
         return res.status(400).json({ success: false, message: 'A task can only depend on other tasks within the same event.' });
       }
+    }
+
+    if (assignedTo) {
+      const membership = await EventMember.findOne({ eventId, userId: assignedTo, status: 'ACCEPTED' });
+      if (!membership) return res.status(400).json({ success: false, message: 'Tasks can only be assigned to accepted event members.' });
     }
 
     const task = await Task.create({ ...req.body, eventId, teamId: teamId || null, createdBy: req.user._id });
@@ -187,4 +192,3 @@ exports.deleteTask = async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 };
-
