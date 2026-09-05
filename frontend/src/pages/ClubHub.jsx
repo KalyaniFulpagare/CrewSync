@@ -39,12 +39,16 @@ export default function ClubHub() {
       client.get(`/clubs/${clubId}/events`)
     ]);
     const isCoordinator = hierarchyRes.data.coordinators.some((coordinator) => String(coordinator.userId?._id) === String(user?.id));
+    const isHeadOrJointHead = hierarchyRes.data.coordinators.some((coordinator) =>
+      String(coordinator.userId?._id) === String(user?.id) &&
+      ['HEAD_COORDINATOR', 'JOINT_HEAD_COORDINATOR'].includes(coordinator.position)
+    );
     const isTeamLead = hierarchyRes.data.teams.some((team) => team.members.some((member) => String(member.userId?._id) === String(user?.id) && ['HEAD', 'CO_HEAD'].includes(member.role)));
     const heatmapRes = (isCoordinator || isTeamLead)
-      ? await client.get(`/clubs/${clubId}/heatmap`)
+      ? await client.get(`/clubs/${clubId}/heatmap`).catch(() => ({ data: { heatmap: [] } }))
       : { data: { heatmap: [] } };
-    const drivesRes = isCoordinator
-      ? await client.get(`/recruitment/clubs/${clubId}/drives`)
+    const drivesRes = isHeadOrJointHead
+      ? await client.get(`/recruitment/clubs/${clubId}/drives`).catch(() => ({ data: { drives: [] } }))
       : { data: { drives: [] } };
     setHierarchy(hierarchyRes.data);
     setHeatmap(heatmapRes.data.heatmap);
@@ -131,15 +135,27 @@ export default function ClubHub() {
         required: q.required,
         options: q.type === 'SELECT' ? q.options.split(',').map((o) => o.trim()).filter(Boolean) : []
       }));
-    await client.post(`/recruitment/clubs/${clubId}/drives`, { ...driveForm, questions });
-    setDriveForm({ title: '', description: '', teams: [], questions: [{ ...emptyQuestion }] });
-    setShowDriveForm(false);
-    load();
+    if (driveForm.teams.length === 0) {
+      alert('Select at least one team this drive is recruiting for.');
+      return;
+    }
+    try {
+      await client.post(`/recruitment/clubs/${clubId}/drives`, { ...driveForm, questions });
+      setDriveForm({ title: '', description: '', teams: [], questions: [{ ...emptyQuestion }] });
+      setShowDriveForm(false);
+      load();
+    } catch (err) {
+      alert(err.response?.data?.message || 'Could not create the recruitment drive.');
+    }
   };
 
   if (!hierarchy) return <div className="p-8 text-text-muted text-sm">Loading...</div>;
 
   const isCoordinator = hierarchy.coordinators.some((coordinator) => String(coordinator.userId?._id) === String(user?.id));
+  const isHeadOrJointHead = hierarchy.coordinators.some((coordinator) =>
+    String(coordinator.userId?._id) === String(user?.id) &&
+    ['HEAD_COORDINATOR', 'JOINT_HEAD_COORDINATOR'].includes(coordinator.position)
+  );
   const canManageTeam = (team) => isCoordinator || team.members.some((member) => String(member.userId?._id) === String(user?.id) && ['HEAD', 'CO_HEAD'].includes(member.role));
   const canViewHeatmap = isCoordinator || hierarchy.teams.some(canManageTeam);
 
@@ -154,7 +170,7 @@ export default function ClubHub() {
           <div className="bg-surface border border-black/5 rounded-xl p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-display font-semibold text-text">Club structure</h2>
-              {isCoordinator && <div className="flex items-center gap-3"><button onClick={() => setShowCoordinatorForm(true)} className="flex items-center gap-1.5 text-xs font-medium text-text-muted hover:text-accent"><Crown size={14} /> Add coordinator</button><button onClick={() => setShowTeamForm(true)} className="flex items-center gap-1.5 text-xs font-medium text-accent"><Plus size={14} /> New team</button></div>}
+              {isHeadOrJointHead && <div className="flex items-center gap-3"><button onClick={() => setShowCoordinatorForm(true)} className="flex items-center gap-1.5 text-xs font-medium text-text-muted hover:text-accent"><Crown size={14} /> Add coordinator</button><button onClick={() => setShowTeamForm(true)} className="flex items-center gap-1.5 text-xs font-medium text-accent"><Plus size={14} /> New team</button></div>}
             </div>
             <OrgChart
               coordinators={hierarchy.coordinators}
@@ -204,7 +220,7 @@ export default function ClubHub() {
             )}
           </div>
 
-          {isCoordinator && (
+          {isHeadOrJointHead && (
             <div className="bg-surface border border-black/5 rounded-xl p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="font-display font-semibold text-text flex items-center gap-2"><ClipboardList size={16} className="text-accent" /> Recruitment drives</h2>
