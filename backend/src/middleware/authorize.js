@@ -1,4 +1,4 @@
-﻿const EventMember = require('../models/EventMember');
+const EventMember = require('../models/EventMember');
 const ClubMembership = require('../models/ClubMembership');
 const TeamMembership = require('../models/TeamMembership');
 const Team = require('../models/Team');
@@ -26,7 +26,7 @@ exports.requireEventMemberForTask = async (req, res, next) => {
 
     const membership = await EventMember.findOne({ eventId: task.eventId, userId: req.user._id, status: 'ACCEPTED' });
     if (!membership) {
-      return res.status(403).json({ success: false, message: 'You are not a member of this task''s event.' });
+      return res.status(403).json({ success: false, message: 'You are not a member of this task\'s event.' });
     }
     req.task = task;
     next();
