@@ -1,8 +1,10 @@
-const EventMember = require('../models/EventMember');
+﻿const EventMember = require('../models/EventMember');
 const ClubMembership = require('../models/ClubMembership');
 const TeamMembership = require('../models/TeamMembership');
 const Team = require('../models/Team');
 const Event = require('../models/Event');
+
+const OPERATIONAL_POSITIONS = ['HEAD_COORDINATOR', 'JOINT_HEAD_COORDINATOR'];
 
 exports.requireEventMember = async (req, res, next) => {
   try {
@@ -54,7 +56,7 @@ exports.requireClubCoordinator = async (req, res, next) => {
     const membership = await ClubMembership.findOne({
       clubId,
       userId: req.user._id,
-      position: { $in: ['HEAD_COORDINATOR', 'JOINT_HEAD_COORDINATOR'] }
+      position: { $in: OPERATIONAL_POSITIONS }
     });
     if (!membership) {
       return res.status(403).json({ success: false, message: 'Only the Head or Joint Head Coordinator can do this.' });
@@ -95,7 +97,7 @@ exports.requireTeamHeadOrCoordinator = async (req, res, next) => {
     const teamMembership = await TeamMembership.findOne({ teamId, userId: req.user._id, role: { $in: ['HEAD', 'CO_HEAD'] }, status: 'ACCEPTED' });
     if (teamMembership) return next();
 
-    const clubMembership = await ClubMembership.findOne({ clubId: team.clubId, userId: req.user._id });
+    const clubMembership = await ClubMembership.findOne({ clubId: team.clubId, userId: req.user._id, position: { $in: OPERATIONAL_POSITIONS } });
     if (clubMembership) return next();
 
     return res.status(403).json({ success: false, message: 'Only the team head, co-head, or a club coordinator can add members.' });
@@ -107,7 +109,7 @@ exports.requireTeamHeadOrCoordinator = async (req, res, next) => {
 exports.requireClubMemberOrCoordinator = async (req, res, next) => {
   try {
     const clubId = req.body.clubId || req.params.clubId;
-    const clubMembership = await ClubMembership.findOne({ clubId, userId: req.user._id });
+    const clubMembership = await ClubMembership.findOne({ clubId, userId: req.user._id, position: { $in: OPERATIONAL_POSITIONS } });
     if (clubMembership) return next();
 
     const teams = await Team.find({ clubId });
@@ -130,7 +132,7 @@ exports.requireDriveCoordinator = async (req, res, next) => {
     const membership = await ClubMembership.findOne({
       clubId: drive.clubId,
       userId: req.user._id,
-      position: { $in: ['HEAD_COORDINATOR', 'JOINT_HEAD_COORDINATOR'] }
+      position: { $in: OPERATIONAL_POSITIONS }
     });
     if (!membership) {
       return res.status(403).json({ success: false, message: 'Only the Head or Joint Head Coordinator can do this.' });
