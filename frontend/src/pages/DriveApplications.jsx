@@ -22,7 +22,9 @@ export default function DriveApplications() {
   const { driveId } = useParams();
   const [drive, setDrive] = useState(null);
   const [applications, setApplications] = useState([]);
+  const [isCoordinator, setIsCoordinator] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   const load = useCallback(() => {
     setLoading(true);
@@ -32,20 +34,31 @@ export default function DriveApplications() {
     ]).then(([driveRes, appsRes]) => {
       setDrive(driveRes.data.drive);
       setApplications(appsRes.data.applications);
+      setIsCoordinator(!!appsRes.data.isCoordinator);
     }).finally(() => setLoading(false));
   }, [driveId]);
 
   useEffect(() => { load(); }, [load]);
 
   const updateStatus = async (applicationId, status) => {
-    await client.patch(`/recruitment/drives/${driveId}/applications/${applicationId}/status`, { status });
-    load();
+    setError('');
+    try {
+      await client.patch(`/recruitment/drives/${driveId}/applications/${applicationId}/status`, { status });
+      load();
+    } catch (err) {
+      setError(err.response?.data?.message || 'Could not update this applicant.');
+    }
   };
 
   const toggleDriveStatus = async () => {
-    const status = drive.status === 'OPEN' ? 'CLOSED' : 'OPEN';
-    await client.patch(`/recruitment/drives/${driveId}/status`, { status });
-    load();
+    setError('');
+    try {
+      const status = drive.status === 'OPEN' ? 'CLOSED' : 'OPEN';
+      await client.patch(`/recruitment/drives/${driveId}/status`, { status });
+      load();
+    } catch (err) {
+      setError(err.response?.data?.message || 'Could not update the drive status.');
+    }
   };
 
   if (loading || !drive) return <div className="p-8 text-text-muted text-sm">Loading...</div>;
@@ -53,16 +66,22 @@ export default function DriveApplications() {
   return (
     <div className="p-8 max-w-6xl mx-auto">
       <Link to={`/clubs/${drive.clubId?._id || drive.clubId}`} className="text-xs text-text-muted hover:text-text">Back to club</Link>
-      <div className="flex items-center justify-between mt-2 mb-6">
+      <div className="flex items-center justify-between mt-2 mb-2">
         <div>
           <h1 className="font-display text-2xl font-bold mb-1">{drive.title}</h1>
-          <p className="text-text-muted text-sm">{applications.length} applicant{applications.length !== 1 && 's'}</p>
+          <p className="text-text-muted text-sm">
+            {applications.length} applicant{applications.length !== 1 && 's'}
+            {!isCoordinator && ' — showing your team only'}
+          </p>
         </div>
-        <button onClick={toggleDriveStatus}
-          className={`text-xs font-medium px-3 py-1.5 rounded-lg ${drive.status === 'OPEN' ? 'bg-red-50 text-danger hover:bg-red-100' : 'bg-emerald-50 text-success hover:bg-emerald-100'}`}>
-          {drive.status === 'OPEN' ? 'Close drive' : 'Reopen drive'}
-        </button>
+        {isCoordinator && (
+          <button onClick={toggleDriveStatus}
+            className={`text-xs font-medium px-3 py-1.5 rounded-lg ${drive.status === 'OPEN' ? 'bg-red-50 text-danger hover:bg-red-100' : 'bg-emerald-50 text-success hover:bg-emerald-100'}`}>
+            {drive.status === 'OPEN' ? 'Close drive' : 'Reopen drive'}
+          </button>
+        )}
       </div>
+      {error && <p className="text-xs text-red-500 mb-4">{error}</p>}
 
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         {columns.map((col) => (

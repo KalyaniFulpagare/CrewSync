@@ -133,7 +133,7 @@ exports.listDriveApplications = async (req, res) => {
       .populate('applicantId', 'name email')
       .populate('teamId', 'name')
       .sort({ createdAt: -1 });
-    res.status(200).json({ success: true, applications });
+    res.status(200).json({ success: true, applications, isCoordinator: req.driveAccess.isCoordinator });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -174,3 +174,4 @@ exports.updateApplicationStatus = async (req, res) => {
     res.status(400).json({ success: false, message: err.message });
   }
 };
+
