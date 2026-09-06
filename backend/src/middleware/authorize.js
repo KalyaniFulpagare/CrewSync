@@ -144,6 +144,42 @@ exports.requireDriveCoordinator = async (req, res, next) => {
   }
 };
 
+exports.requireDriveCoordinatorOrTeamLead = async (req, res, next) => {
+  try {
+    const RecruitmentDrive = require('../models/RecruitmentDrive');
+    const driveId = req.params.driveId;
+    const drive = await RecruitmentDrive.findById(driveId);
+    if (!drive) return res.status(404).json({ success: false, message: 'Recruitment drive not found.' });
+
+    const coordinatorMembership = await ClubMembership.findOne({
+      clubId: drive.clubId,
+      userId: req.user._id,
+      position: { $in: OPERATIONAL_POSITIONS }
+    });
+    if (coordinatorMembership) {
+      req.drive = drive;
+      req.driveAccess = { isCoordinator: true, leadTeamIds: [] };
+      return next();
+    }
+
+    const leadMemberships = await TeamMembership.find({
+      teamId: { $in: drive.teams },
+      userId: req.user._id,
+      role: { $in: ['HEAD', 'CO_HEAD'] },
+      status: 'ACCEPTED'
+    });
+    if (leadMemberships.length > 0) {
+      req.drive = drive;
+      req.driveAccess = { isCoordinator: false, leadTeamIds: leadMemberships.map((m) => String(m.teamId)) };
+      return next();
+    }
+
+    return res.status(403).json({ success: false, message: 'Only the club coordinator or a lead of a recruiting team can do this.' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
 exports.requireChannelMember = async (req, res, next) => {
   try {
     const { channelType, channelId } = req.params;

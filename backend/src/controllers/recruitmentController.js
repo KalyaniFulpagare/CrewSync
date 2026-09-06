@@ -125,7 +125,11 @@ exports.listMyApplications = async (req, res) => {
 
 exports.listDriveApplications = async (req, res) => {
   try {
-    const applications = await Application.find({ driveId: req.params.driveId })
+    const query = { driveId: req.params.driveId };
+    if (!req.driveAccess.isCoordinator) {
+      query.teamId = { $in: req.driveAccess.leadTeamIds };
+    }
+    const applications = await Application.find(query)
       .populate('applicantId', 'name email')
       .populate('teamId', 'name')
       .sort({ createdAt: -1 });
@@ -145,6 +149,10 @@ exports.updateApplicationStatus = async (req, res) => {
 
     const application = await Application.findOne({ _id: req.params.applicationId, driveId: req.params.driveId });
     if (!application) return res.status(404).json({ success: false, message: 'Application not found.' });
+
+    if (!req.driveAccess.isCoordinator && !req.driveAccess.leadTeamIds.includes(String(application.teamId))) {
+      return res.status(403).json({ success: false, message: 'You can only review applicants for your own team.' });
+    }
 
     application.status = status;
     await application.save();
