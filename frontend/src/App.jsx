@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { SocketProvider } from './context/SocketContext';
 import Sidebar from './components/Sidebar';
+import Toast from './components/Toast';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
@@ -52,6 +53,7 @@ export default function App() {
     <AuthProvider>
       <SocketProvider>
         <AppRoutes />
+        <Toast />
       </SocketProvider>
     </AuthProvider>
   );
