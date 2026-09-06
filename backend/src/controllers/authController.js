@@ -14,7 +14,7 @@ exports.register = async (req, res) => {
     if (existing) return res.status(400).json({ success: false, message: 'An account with this email already exists.' });
 
     const user = await User.create({ name, email, password });
-    res.status(201).json({ success: true, token: signToken(user._id), user: { id: user._id, name: user.name, email: user.email } });
+    res.status(201).json({ success: true, token: signToken(user._id), user: { id: user._id, name: user.name, email: user.email, role: user.role } });
   } catch (err) {
     res.status(400).json({ success: false, message: err.message });
   }
@@ -27,14 +27,14 @@ exports.login = async (req, res) => {
     if (!user || !(await user.comparePassword(password))) {
       return res.status(401).json({ success: false, message: 'Invalid email or password.' });
     }
-    res.status(200).json({ success: true, token: signToken(user._id), user: { id: user._id, name: user.name, email: user.email } });
+    res.status(200).json({ success: true, token: signToken(user._id), user: { id: user._id, name: user.name, email: user.email, role: user.role } });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
 };
 
 exports.getMe = async (req, res) => {
-  res.status(200).json({ success: true, user: { id: req.user._id, name: req.user.name, email: req.user.email } });
+  res.status(200).json({ success: true, user: { id: req.user._id, name: req.user.name, email: req.user.email, role: req.user.role } });
 };
 
 exports.searchUsers = async (req, res) => {

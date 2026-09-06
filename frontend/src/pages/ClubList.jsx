@@ -1,23 +1,31 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, X, Building2 } from 'lucide-react';
 import client from '../api/client';
+import { useAuth } from '../context/AuthContext';
 
 export default function ClubList() {
+  const { user } = useAuth();
   const [clubs, setClubs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ name: '', description: '' });
+  const [error, setError] = useState('');
 
   const load = () => client.get('/clubs').then((res) => setClubs(res.data.clubs)).finally(() => setLoading(false));
   useEffect(() => { load(); }, []);
 
   const handleCreate = async (e) => {
     e.preventDefault();
-    await client.post('/clubs', form);
-    setShowForm(false);
-    setForm({ name: '', description: '' });
-    load();
+    setError('');
+    try {
+      await client.post('/clubs', form);
+      setShowForm(false);
+      setForm({ name: '', description: '' });
+      load();
+    } catch (err) {
+      setError(err.response?.data?.message || 'Could not create the club.');
+    }
   };
 
   return (
@@ -27,9 +35,11 @@ export default function ClubList() {
           <h1 className="font-display text-2xl font-bold">Your clubs</h1>
           <p className="text-text-muted text-sm mt-1">Coordinators, teams, and events — one hub per club.</p>
         </div>
-        <button onClick={() => setShowForm(true)} className="flex items-center gap-2 bg-accent text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-accent/90">
-          <Plus size={16} /> New club
-        </button>
+        {user?.role === 'FACULTY_ADMIN' && (
+          <button onClick={() => setShowForm(true)} className="flex items-center gap-2 bg-accent text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-accent/90">
+            <Plus size={16} /> New club
+          </button>
+        )}
       </div>
 
       {loading ? (
@@ -55,6 +65,7 @@ export default function ClubList() {
               <button onClick={() => setShowForm(false)}><X size={18} /></button>
             </div>
             <form onSubmit={handleCreate} className="flex flex-col gap-3">
+              {error && <p className="text-xs text-red-500">{error}</p>}
               <input required placeholder="Club name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
                 className="px-3 py-2 rounded-lg border border-black/10 text-sm outline-none focus:border-accent" />
               <textarea placeholder="Description" rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })}
