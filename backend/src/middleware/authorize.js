@@ -122,6 +122,22 @@ exports.requireClubMemberOrCoordinator = async (req, res, next) => {
   }
 };
 
+exports.requireClubMember = async (req, res, next) => {
+  try {
+    const clubId = req.body.clubId || req.params.clubId;
+    const clubMembership = await ClubMembership.findOne({ clubId, userId: req.user._id });
+    if (clubMembership) return next();
+
+    const teams = await Team.find({ clubId });
+    const teamMembership = await TeamMembership.findOne({ teamId: { $in: teams.map((t) => t._id) }, userId: req.user._id, status: 'ACCEPTED' });
+    if (teamMembership) return next();
+
+    return res.status(403).json({ success: false, message: 'You are not part of this club.' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
 exports.requireDriveCoordinator = async (req, res, next) => {
   try {
     const RecruitmentDrive = require('../models/RecruitmentDrive');
@@ -225,3 +241,4 @@ exports.requireFacultyAdmin = (req, res, next) => {
   }
   next();
 };
+
