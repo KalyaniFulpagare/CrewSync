@@ -21,7 +21,7 @@ const run = async () => {
 
   const headCoordinator = await User.create({ name: 'Tejas Gadgil', email: 'head@ccoew.edu', password: 'password123' });
   const jointHead = await User.create({ name: 'Srushti Jadhav', email: 'jointhead@ccoew.edu', password: 'password123' });
-  const facultyCoordinator = await User.create({ name: 'Dr Makarand Velankar', email: 'faculty@ccoew.edu', password: 'password123' });
+  const facultyCoordinator = await User.create({ name: 'Dr Makarand Velankar', email: 'faculty@ccoew.edu', password: 'password123', role: 'FACULTY' });
   const collegeAdmin = await User.create({ name: 'College Admin', email: 'admin@ccoew.edu', password: 'password123', role: 'FACULTY_ADMIN' });
 
   const designHead = await User.create({ name: 'Kalz (Design Head)', email: 'designhead@ccoew.edu', password: 'password123' });
@@ -126,4 +126,5 @@ const run = async () => {
 };
 
 run().catch((err) => { console.error(err); process.exit(1); });
+
 

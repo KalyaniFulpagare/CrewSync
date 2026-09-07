@@ -10,9 +10,37 @@ const { buildPersonalLoad } = require('../utils/crossClubWorkload');
 
 exports.createClub = async (req, res) => {
   try {
-    const { name, description } = req.body;
+    const { name, description, headEmail, coHeadEmail, facultyCoordinatorEmail } = req.body;
+
+    if (!headEmail || !facultyCoordinatorEmail) {
+      return res.status(400).json({ success: false, message: 'A head coordinator email and a faculty coordinator email are both required to found a club.' });
+    }
+
+    const [headUser, facultyUser, coHeadUser] = await Promise.all([
+      User.findOne({ email: headEmail }),
+      User.findOne({ email: facultyCoordinatorEmail }),
+      coHeadEmail ? User.findOne({ email: coHeadEmail }) : Promise.resolve(null)
+    ]);
+
+    if (!headUser) return res.status(404).json({ success: false, message: `No user found with email ${headEmail}.` });
+    if (!facultyUser) return res.status(404).json({ success: false, message: `No user found with email ${facultyCoordinatorEmail}.` });
+    if (coHeadEmail && !coHeadUser) return res.status(404).json({ success: false, message: `No user found with email ${coHeadEmail}.` });
+
+    if (!['FACULTY', 'FACULTY_ADMIN'].includes(facultyUser.role)) {
+      return res.status(400).json({ success: false, message: 'The faculty coordinator must be an actual faculty account, not a student.' });
+    }
+
     const club = await Club.create({ name, description, createdBy: req.user._id });
-    await ClubMembership.create({ clubId: club._id, userId: req.user._id, position: 'HEAD_COORDINATOR' });
+
+    const memberships = [
+      ClubMembership.create({ clubId: club._id, userId: facultyUser._id, position: 'FACULTY_COORDINATOR' }),
+      ClubMembership.create({ clubId: club._id, userId: headUser._id, position: 'HEAD_COORDINATOR' })
+    ];
+    if (coHeadUser) {
+      memberships.push(ClubMembership.create({ clubId: club._id, userId: coHeadUser._id, position: 'JOINT_HEAD_COORDINATOR' }));
+    }
+    await Promise.all(memberships);
+
     res.status(201).json({ success: true, club });
   } catch (err) {
     res.status(400).json({ success: false, message: err.message });
@@ -37,8 +65,8 @@ exports.addClubCoordinator = async (req, res) => {
     const { email, position } = req.body;
     const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ success: false, message: 'No user found with that email.' });
-    if (position === 'FACULTY_COORDINATOR' && user.role !== 'FACULTY_ADMIN') {
-      return res.status(400).json({ success: false, message: 'Only an actual faculty admin account can be assigned as Faculty Coordinator.' });
+    if (position === 'FACULTY_COORDINATOR' && !['FACULTY', 'FACULTY_ADMIN'].includes(user.role)) {
+      return res.status(400).json({ success: false, message: 'Only an actual faculty account can be assigned as Faculty Coordinator.' });
     }
     const membership = await ClubMembership.create({ clubId: req.params.clubId, userId: user._id, position });
     res.status(201).json({ success: true, membership: { ...membership.toObject(), userId: { _id: user._id, name: user.name } } });
