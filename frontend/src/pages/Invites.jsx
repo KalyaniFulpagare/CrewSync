@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+ï»¿import React, { useEffect, useState } from 'react';
 import { Check, X } from 'lucide-react';
 import client from '../api/client';
 
@@ -31,7 +31,7 @@ export default function Invites() {
       <p className="text-text-muted text-sm mb-6">Things you've been invited to but haven't responded to yet.</p>
 
       {loading ? (
-        <p className="text-text-muted text-sm">Loading…</p>
+        <p className="text-text-muted text-sm">Loadingâ€¦</p>
       ) : totalCount === 0 ? (
         <p className="text-text-muted text-sm">No pending invites right now.</p>
       ) : (
@@ -40,11 +40,11 @@ export default function Invites() {
             <div key={inv._id} className="bg-surface border border-black/5 rounded-xl p-4 flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium">{inv.eventId?.title}</p>
-                <p className="text-xs text-text-muted">Event invite · {new Date(inv.eventId?.eventDate).toLocaleDateString(undefined, { dateStyle: 'medium' })}</p>
+                <p className="text-xs text-text-muted">Event invite Â· {new Date(inv.eventId?.eventDate).toLocaleDateString(undefined, { dateStyle: 'medium' })}</p>
               </div>
               <div className="flex gap-2">
-                <button onClick={() => respondToEvent(inv._id, true)} className="p-1.5 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100"><Check size={16} /></button>
-                <button onClick={() => respondToEvent(inv._id, false)} className="p-1.5 rounded-lg bg-red-50 text-danger hover:bg-red-100"><X size={16} /></button>
+                <button onClick={() => respondToEvent(inv._id, true)} aria-label="Accept event invite" className="p-1.5 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100"><Check size={16} /></button>
+                <button onClick={() => respondToEvent(inv._id, false)} aria-label="Decline event invite" className="p-1.5 rounded-lg bg-red-50 text-danger hover:bg-red-100"><X size={16} /></button>
               </div>
             </div>
           ))}
@@ -52,11 +52,11 @@ export default function Invites() {
             <div key={inv._id} className="bg-surface border border-black/5 rounded-xl p-4 flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium">{inv.teamId?.name}</p>
-                <p className="text-xs text-text-muted">Team invite · role: {inv.role}</p>
+                <p className="text-xs text-text-muted">Team invite Â· role: {inv.role}</p>
               </div>
               <div className="flex gap-2">
-                <button onClick={() => respondToTeam(inv._id, true)} className="p-1.5 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100"><Check size={16} /></button>
-                <button onClick={() => respondToTeam(inv._id, false)} className="p-1.5 rounded-lg bg-red-50 text-danger hover:bg-red-100"><X size={16} /></button>
+                <button onClick={() => respondToTeam(inv._id, true)} aria-label="Accept team invite" className="p-1.5 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100"><Check size={16} /></button>
+                <button onClick={() => respondToTeam(inv._id, false)} aria-label="Decline team invite" className="p-1.5 rounded-lg bg-red-50 text-danger hover:bg-red-100"><X size={16} /></button>
               </div>
             </div>
           ))}
@@ -65,3 +65,4 @@ export default function Invites() {
     </div>
   );
 }
+

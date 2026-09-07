@@ -62,7 +62,7 @@ export default function ClubList() {
           <div className="bg-surface rounded-xl p-6 w-full max-w-md">
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-display font-semibold text-lg">Create club</h2>
-              <button onClick={() => setShowForm(false)}><X size={18} /></button>
+              <button onClick={() => setShowForm(false)} aria-label="Close"><X size={18} /></button>
             </div>
             <form onSubmit={handleCreate} className="flex flex-col gap-3">
               {error && <p className="text-xs text-red-500">{error}</p>}
@@ -78,3 +78,4 @@ export default function ClubList() {
     </div>
   );
 }
+

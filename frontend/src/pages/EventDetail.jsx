@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+﻿import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { UserPlus, Sparkles, Send, Pencil, Trash2, X, LogOut, UserX, LayoutGrid } from 'lucide-react';
 import client from '../api/client';
@@ -203,7 +203,7 @@ export default function EventDetail() {
             <span className="text-[11px] font-semibold px-2 py-1 rounded-full bg-paper text-text-muted">{event.status.toLowerCase()}</span>
           </div>
           {event.description && <p className="max-w-2xl text-sm text-text-muted">{event.description}</p>}
-          <p className="mt-2 text-xs text-text-muted">{formatDate(event.eventDate)}{event.venue ? ` · ${event.venue}` : ''}{event.budget ? ` · Rs. ${event.budget}` : ''}</p>
+          <p className="mt-2 text-xs text-text-muted">{formatDate(event.eventDate)}{event.venue ? ` Â· ${event.venue}` : ''}{event.budget ? ` Â· Rs. ${event.budget}` : ''}</p>
         </div>
         <div className="flex gap-2 shrink-0">
           {isHost && <button onClick={openEventEdit} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-black/10 text-xs font-medium hover:border-accent"><Pencil size={14} /> Edit event</button>}
@@ -260,7 +260,7 @@ export default function EventDetail() {
               {comments.length === 0 ? <p className="text-sm text-text-muted">No comments yet.</p> : comments.map((comment) => (
                 <div key={comment._id} className="text-sm">
                   <span className="font-medium text-text">{comment.userId?.name || 'Member'}</span>
-                  <span className="text-text-muted"> · {new Date(comment.createdAt).toLocaleString()}</span>
+                  <span className="text-text-muted"> Â· {new Date(comment.createdAt).toLocaleString()}</span>
                   <p className="text-text mt-0.5">{comment.text}</p>
                 </div>
               ))}
@@ -281,7 +281,7 @@ export default function EventDetail() {
               {acceptedMembers.map((member) => (
                 <div key={member._id} className="flex items-center justify-between gap-2 text-sm">
                   <span className="text-text truncate">{member.userId?.name} {member.role === 'HEAD' && <span className="text-xs text-text-muted">(host)</span>}</span>
-                  {isHost && String(member.userId?._id) !== String(user?.id) && <button onClick={() => handleRemoveEventMember(member._id)} title="Remove member" className="text-text-muted hover:text-danger"><UserX size={14} /></button>}
+                  {isHost && String(member.userId?._id) !== String(user?.id) && <button onClick={() => handleRemoveEventMember(member._id)} title="Remove member" aria-label="Remove member" className="text-text-muted hover:text-danger"><UserX size={14} /></button>}
                 </div>
               ))}
             </div>
@@ -308,7 +308,7 @@ export default function EventDetail() {
       {editingTask && (
         <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center p-4">
           <div className="bg-surface rounded-xl p-6 w-full max-w-sm">
-            <div className="flex justify-between items-center mb-4"><h2 className="font-display font-semibold">Edit task</h2><button onClick={() => setEditingTask(null)}><X size={18} /></button></div>
+            <div className="flex justify-between items-center mb-4"><h2 className="font-display font-semibold">Edit task</h2><button onClick={() => setEditingTask(null)} aria-label="Close"><X size={18} /></button></div>
             <form onSubmit={handleSaveTaskEdit} className="flex flex-col gap-3">
               <input required value={editingTask.title} onChange={(e) => setEditingTask({ ...editingTask, title: e.target.value })} className="px-3 py-2 rounded-lg border border-black/10 text-sm" />
               <textarea value={editingTask.description || ''} onChange={(e) => setEditingTask({ ...editingTask, description: e.target.value })} rows={3} placeholder="Task description" className="px-3 py-2 rounded-lg border border-black/10 text-sm resize-none" />
@@ -324,7 +324,7 @@ export default function EventDetail() {
       {editingEvent && eventEditForm && (
         <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center p-4">
           <div className="bg-surface rounded-xl p-6 w-full max-w-md">
-            <div className="flex justify-between items-center mb-4"><h2 className="font-display font-semibold">Edit event</h2><button onClick={() => setEditingEvent(false)}><X size={18} /></button></div>
+            <div className="flex justify-between items-center mb-4"><h2 className="font-display font-semibold">Edit event</h2><button onClick={() => setEditingEvent(false)} aria-label="Close"><X size={18} /></button></div>
             <form onSubmit={handleSaveEventEdit} className="flex flex-col gap-3">
               <input required value={eventEditForm.title} onChange={(e) => setEventEditForm({ ...eventEditForm, title: e.target.value })} className="px-3 py-2 rounded-lg border border-black/10 text-sm" />
               <textarea value={eventEditForm.description || ''} onChange={(e) => setEventEditForm({ ...eventEditForm, description: e.target.value })} rows={3} className="px-3 py-2 rounded-lg border border-black/10 text-sm resize-none" />
@@ -340,4 +340,5 @@ export default function EventDetail() {
     </div>
   );
 }
+
 

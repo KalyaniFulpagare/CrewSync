@@ -42,10 +42,11 @@ export default function TaskRow({ task, onStatusChange, onAssign, members = [], 
           <option value="DONE">Done</option>
           <option value="BLOCKED">Blocked</option>
         </select>
-        <button onClick={() => onEdit(task)} className="text-text-muted hover:text-accent p-1"><Pencil size={14} /></button>
+        <button onClick={() => onEdit(task)} aria-label="Edit task" className="text-text-muted hover:text-accent p-1"><Pencil size={14} /></button>
         <button onClick={() => onDelete(task._id)} className="text-text-muted hover:text-danger p-1"><Trash2 size={14} /></button>
       </div>
     </div>
   );
 }
+
 

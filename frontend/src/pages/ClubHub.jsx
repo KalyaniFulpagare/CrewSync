@@ -271,7 +271,7 @@ export default function ClubHub() {
           <div className="bg-surface rounded-xl p-6 w-full max-w-sm">
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-display font-semibold text-lg">New team</h2>
-              <button onClick={() => setShowTeamForm(false)}><X size={18} /></button>
+              <button onClick={() => setShowTeamForm(false)} aria-label="Close"><X size={18} /></button>
             </div>
             <form onSubmit={handleCreateTeam} className="flex flex-col gap-3">
               <input required placeholder="e.g. Design Team" value={teamName} onChange={(e) => setTeamName(e.target.value)}
@@ -287,7 +287,7 @@ export default function ClubHub() {
           <div className="bg-surface rounded-xl p-6 w-full max-w-sm">
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-display font-semibold text-lg">Add team member</h2>
-              <button onClick={() => setShowMemberForm(null)}><X size={18} /></button>
+              <button onClick={() => setShowMemberForm(null)} aria-label="Close"><X size={18} /></button>
             </div>
             <form onSubmit={handleAddMember} className="flex flex-col gap-3">
               <input required type="email" placeholder="member@email.com" value={memberEmail} onChange={(e) => setMemberEmail(e.target.value)}
@@ -307,7 +307,7 @@ export default function ClubHub() {
       {showCoordinatorForm && (
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center p-4 z-50">
           <div className="bg-surface rounded-xl p-6 w-full max-w-sm shadow-2xl">
-            <div className="flex items-center justify-between mb-4"><h2 className="font-display font-semibold text-lg">Add coordinator</h2><button onClick={() => setShowCoordinatorForm(false)}><X size={18} /></button></div>
+            <div className="flex items-center justify-between mb-4"><h2 className="font-display font-semibold text-lg">Add coordinator</h2><button onClick={() => setShowCoordinatorForm(false)} aria-label="Close"><X size={18} /></button></div>
             <form onSubmit={handleAddCoordinator} className="flex flex-col gap-3">
               <input required type="email" placeholder="coordinator@email.com" value={coordinatorEmail} onChange={(e) => setCoordinatorEmail(e.target.value)} className="px-3 py-2 rounded-lg border border-black/10 text-sm outline-none focus:border-accent" />
               <select value={coordinatorPosition} onChange={(e) => setCoordinatorPosition(e.target.value)} className="px-3 py-2 rounded-lg border border-black/10 text-sm outline-none focus:border-accent bg-white"><option value="FACULTY_COORDINATOR">Faculty coordinator</option><option value="JOINT_HEAD_COORDINATOR">Joint head coordinator</option><option value="HEAD_COORDINATOR">Head coordinator</option></select>
@@ -322,7 +322,7 @@ export default function ClubHub() {
           <div className="bg-surface rounded-xl p-6 w-full max-w-lg my-8">
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-display font-semibold text-lg">New recruitment drive</h2>
-              <button onClick={() => setShowDriveForm(false)}><X size={18} /></button>
+              <button onClick={() => setShowDriveForm(false)} aria-label="Close"><X size={18} /></button>
             </div>
             <form onSubmit={handleCreateDrive} className="flex flex-col gap-3">
               <input required placeholder="e.g. Design Team Recruitment 2026" value={driveForm.title}
@@ -361,7 +361,7 @@ export default function ClubHub() {
                           <option value="TEXTAREA">Long text</option>
                           <option value="SELECT">Dropdown</option>
                         </select>
-                        <button type="button" onClick={() => removeDriveQuestion(idx)} className="text-text-muted hover:text-danger px-1"><X size={14} /></button>
+                        <button type="button" onClick={() => removeDriveQuestion(idx)} aria-label="Remove question" className="text-text-muted hover:text-danger px-1"><X size={14} /></button>
                       </div>
                       {q.type === 'SELECT' && (
                         <input placeholder="Options, comma separated" value={q.options} onChange={(e) => updateDriveQuestion(idx, { options: e.target.value })}
@@ -386,7 +386,7 @@ export default function ClubHub() {
           <div className="bg-surface rounded-xl p-6 w-full max-w-md">
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-display font-semibold text-lg">New event</h2>
-              <button onClick={() => setShowEventForm(false)}><X size={18} /></button>
+              <button onClick={() => setShowEventForm(false)} aria-label="Close"><X size={18} /></button>
             </div>
             <form onSubmit={handleCreateEvent} className="flex flex-col gap-3">
               <input required placeholder="Title" value={eventForm.title} onChange={(e) => setEventForm({ ...eventForm, title: e.target.value })}
@@ -407,3 +407,4 @@ export default function ClubHub() {
     </div>
   );
 }
+
