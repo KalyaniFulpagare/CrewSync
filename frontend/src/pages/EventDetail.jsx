@@ -224,6 +224,7 @@ export default function EventDetail() {
             </div>
 
             <form onSubmit={handleCreateTask} className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-5 rounded-xl bg-paper/70 p-3">
+              <label className="text-xs font-medium text-text-muted mb-1 block">Task title</label>
               <input required value={taskForm.title} onChange={(e) => setTaskForm({ ...taskForm, title: e.target.value })} placeholder="Add a task" className="min-w-0 px-3 py-2 rounded-lg border border-black/10 text-sm outline-none focus:border-accent" />
               <select value={taskForm.teamId} onChange={(e) => setTaskForm({ ...taskForm, teamId: e.target.value })} className="px-3 py-2 rounded-lg border border-black/10 text-sm outline-none focus:border-accent bg-white"><option value="">No team owner</option>{teams.map((team) => <option key={team._id} value={team._id}>{team.name}</option>)}</select>
               <textarea value={taskForm.description} onChange={(e) => setTaskForm({ ...taskForm, description: e.target.value })} rows={2} placeholder="What needs to be done? (optional)" className="sm:col-span-2 px-3 py-2 rounded-lg border border-black/10 text-sm outline-none focus:border-accent resize-none" />
@@ -286,6 +287,7 @@ export default function EventDetail() {
               ))}
             </div>
             {isHost && <form onSubmit={handleInvite} className="flex gap-2">
+              <label className="text-xs font-medium text-text-muted mb-1 block">Member email</label>
               <input required type="email" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} placeholder="member@email.com" className="min-w-0 flex-1 px-3 py-2 rounded-lg border border-black/10 text-xs outline-none focus:border-accent" />
               <button title="Invite member" className="p-2 text-accent border border-black/10 rounded-lg hover:border-accent"><UserPlus size={15} /></button>
             </form>}
@@ -329,7 +331,9 @@ export default function EventDetail() {
               <input required value={eventEditForm.title} onChange={(e) => setEventEditForm({ ...eventEditForm, title: e.target.value })} className="px-3 py-2 rounded-lg border border-black/10 text-sm" />
               <textarea value={eventEditForm.description || ''} onChange={(e) => setEventEditForm({ ...eventEditForm, description: e.target.value })} rows={3} className="px-3 py-2 rounded-lg border border-black/10 text-sm resize-none" />
               <input required type="date" value={eventEditForm.eventDate} onChange={(e) => setEventEditForm({ ...eventEditForm, eventDate: e.target.value })} className="px-3 py-2 rounded-lg border border-black/10 text-sm" />
+              <label className="text-xs font-medium text-text-muted mb-1 block">Venue</label>
               <input value={eventEditForm.venue || ''} onChange={(e) => setEventEditForm({ ...eventEditForm, venue: e.target.value })} placeholder="Venue" className="px-3 py-2 rounded-lg border border-black/10 text-sm" />
+              <label className="text-xs font-medium text-text-muted mb-1 block">Budget</label>
               <input min="0" type="number" value={eventEditForm.budget || 0} onChange={(e) => setEventEditForm({ ...eventEditForm, budget: Number(e.target.value) })} placeholder="Budget" className="px-3 py-2 rounded-lg border border-black/10 text-sm" />
               <select value={eventEditForm.status} onChange={(e) => setEventEditForm({ ...eventEditForm, status: e.target.value })} className="px-3 py-2 rounded-lg border border-black/10 text-sm bg-white"><option value="PLANNED">Planned</option><option value="ONGOING">Ongoing</option><option value="COMPLETED">Completed</option><option value="CANCELLED">Cancelled</option></select>
               <button className="bg-accent text-white text-sm font-medium py-2.5 rounded-lg">Save changes</button>
@@ -340,5 +344,6 @@ export default function EventDetail() {
     </div>
   );
 }
+
 
 

@@ -274,6 +274,7 @@ export default function ClubHub() {
               <button onClick={() => setShowTeamForm(false)} aria-label="Close"><X size={18} /></button>
             </div>
             <form onSubmit={handleCreateTeam} className="flex flex-col gap-3">
+              <label className="text-xs font-medium text-text-muted mb-1 block">Team name</label>
               <input required placeholder="e.g. Design Team" value={teamName} onChange={(e) => setTeamName(e.target.value)}
                 className="px-3 py-2 rounded-lg border border-black/10 text-sm outline-none focus:border-accent" />
               <button className="bg-accent text-white text-sm font-medium py-2.5 rounded-lg hover:bg-accent/90">Create team</button>
@@ -290,6 +291,7 @@ export default function ClubHub() {
               <button onClick={() => setShowMemberForm(null)} aria-label="Close"><X size={18} /></button>
             </div>
             <form onSubmit={handleAddMember} className="flex flex-col gap-3">
+              <label className="text-xs font-medium text-text-muted mb-1 block">Member email</label>
               <input required type="email" placeholder="member@email.com" value={memberEmail} onChange={(e) => setMemberEmail(e.target.value)}
                 className="px-3 py-2 rounded-lg border border-black/10 text-sm outline-none focus:border-accent" />
               <select value={memberRole} onChange={(e) => setMemberRole(e.target.value)}
@@ -309,6 +311,7 @@ export default function ClubHub() {
           <div className="bg-surface rounded-xl p-6 w-full max-w-sm shadow-2xl">
             <div className="flex items-center justify-between mb-4"><h2 className="font-display font-semibold text-lg">Add coordinator</h2><button onClick={() => setShowCoordinatorForm(false)} aria-label="Close"><X size={18} /></button></div>
             <form onSubmit={handleAddCoordinator} className="flex flex-col gap-3">
+              <label className="text-xs font-medium text-text-muted mb-1 block">Coordinator email</label>
               <input required type="email" placeholder="coordinator@email.com" value={coordinatorEmail} onChange={(e) => setCoordinatorEmail(e.target.value)} className="px-3 py-2 rounded-lg border border-black/10 text-sm outline-none focus:border-accent" />
               <select value={coordinatorPosition} onChange={(e) => setCoordinatorPosition(e.target.value)} className="px-3 py-2 rounded-lg border border-black/10 text-sm outline-none focus:border-accent bg-white"><option value="FACULTY_COORDINATOR">Faculty coordinator</option><option value="JOINT_HEAD_COORDINATOR">Joint head coordinator</option><option value="HEAD_COORDINATOR">Head coordinator</option></select>
               <button className="bg-accent text-white text-sm font-medium py-2.5 rounded-lg hover:bg-accent/90">Add coordinator</button>
@@ -325,6 +328,7 @@ export default function ClubHub() {
               <button onClick={() => setShowDriveForm(false)} aria-label="Close"><X size={18} /></button>
             </div>
             <form onSubmit={handleCreateDrive} className="flex flex-col gap-3">
+              <label className="text-xs font-medium text-text-muted mb-1 block">Drive title</label>
               <input required placeholder="e.g. Design Team Recruitment 2026" value={driveForm.title}
                 onChange={(e) => setDriveForm({ ...driveForm, title: e.target.value })}
                 className="px-3 py-2 rounded-lg border border-black/10 text-sm outline-none focus:border-accent" />
@@ -389,14 +393,17 @@ export default function ClubHub() {
               <button onClick={() => setShowEventForm(false)} aria-label="Close"><X size={18} /></button>
             </div>
             <form onSubmit={handleCreateEvent} className="flex flex-col gap-3">
+              <label className="text-xs font-medium text-text-muted mb-1 block">Event title</label>
               <input required placeholder="Title" value={eventForm.title} onChange={(e) => setEventForm({ ...eventForm, title: e.target.value })}
                 className="px-3 py-2 rounded-lg border border-black/10 text-sm outline-none focus:border-accent" />
               <textarea placeholder="Description" rows={2} value={eventForm.description} onChange={(e) => setEventForm({ ...eventForm, description: e.target.value })}
                 className="px-3 py-2 rounded-lg border border-black/10 text-sm outline-none focus:border-accent resize-none" />
               <input required type="date" value={eventForm.eventDate} onChange={(e) => setEventForm({ ...eventForm, eventDate: e.target.value })}
                 className="px-3 py-2 rounded-lg border border-black/10 text-sm outline-none focus:border-accent" />
+              <label className="text-xs font-medium text-text-muted mb-1 block">Venue</label>
               <input placeholder="Venue" value={eventForm.venue} onChange={(e) => setEventForm({ ...eventForm, venue: e.target.value })}
                 className="px-3 py-2 rounded-lg border border-black/10 text-sm outline-none focus:border-accent" />
+              <label className="text-xs font-medium text-text-muted mb-1 block">Budget (Rs.)</label>
               <input type="number" placeholder="Budget (Rs.)" value={eventForm.budget} onChange={(e) => setEventForm({ ...eventForm, budget: e.target.value })}
                 className="px-3 py-2 rounded-lg border border-black/10 text-sm outline-none focus:border-accent" />
               <button className="bg-accent text-white text-sm font-medium py-2.5 rounded-lg hover:bg-accent/90">Create event</button>
@@ -407,4 +414,5 @@ export default function ClubHub() {
     </div>
   );
 }
+
 

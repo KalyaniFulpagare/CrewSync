@@ -66,6 +66,7 @@ export default function ClubList() {
             </div>
             <form onSubmit={handleCreate} className="flex flex-col gap-3">
               {error && <p className="text-xs text-red-500">{error}</p>}
+              <label className="text-xs font-medium text-text-muted mb-1 block">Club name</label>
               <input required placeholder="Club name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
                 className="px-3 py-2 rounded-lg border border-black/10 text-sm outline-none focus:border-accent" />
               <textarea placeholder="Description" rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })}
@@ -78,4 +79,5 @@ export default function ClubList() {
     </div>
   );
 }
+
 
