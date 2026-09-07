@@ -13,12 +13,20 @@ const linkClasses = ({ isActive }) =>
 export default function Sidebar() {
   const { user, logout } = useAuth();
   const [inviteCount, setInviteCount] = useState(0);
+  const [hasClubs, setHasClubs] = useState(true);
   const isFacultyAdmin = user?.role === 'FACULTY_ADMIN' || user?.role === 'FACULTY';
 
   useEffect(() => {
     if (isFacultyAdmin) return;
-    Promise.all([client.get('/events/invites/pending'), client.get('/clubs/invites/pending')])
-      .then(([e, t]) => setInviteCount(e.data.invites.length + t.data.invites.length))
+    Promise.all([
+      client.get('/events/invites/pending'),
+      client.get('/clubs/invites/pending'),
+      client.get('/clubs')
+    ])
+      .then(([e, t, c]) => {
+        setInviteCount(e.data.invites.length + t.data.invites.length);
+        setHasClubs(c.data.clubs.length > 0);
+      })
       .catch(() => {});
   }, [isFacultyAdmin]);
 
@@ -29,8 +37,8 @@ export default function Sidebar() {
         {!isFacultyAdmin && <NavLink to="/" end className={linkClasses}><LayoutGrid size={18} /> Events</NavLink>}
         <NavLink to="/clubs" className={linkClasses}><Building2 size={18} /> Clubs</NavLink>
         <NavLink to="/recruitment" className={linkClasses}><ClipboardList size={18} /> Recruitment</NavLink>
-        {!isFacultyAdmin && <NavLink to="/my-tasks" className={linkClasses}><ListChecks size={18} /> My Tasks</NavLink>}
-        {!isFacultyAdmin && <NavLink to="/my-load" className={linkClasses}><Flame size={18} /> My Load</NavLink>}
+        {!isFacultyAdmin && hasClubs && <NavLink to="/my-tasks" className={linkClasses}><ListChecks size={18} /> My Tasks</NavLink>}
+        {!isFacultyAdmin && hasClubs && <NavLink to="/my-load" className={linkClasses}><Flame size={18} /> My Load</NavLink>}
         {!isFacultyAdmin && (
           <NavLink to="/invites" className={linkClasses}>
             <Bell size={18} /> Invites
@@ -51,4 +59,3 @@ export default function Sidebar() {
     </aside>
   );
 }
-
