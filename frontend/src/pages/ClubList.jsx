@@ -9,7 +9,7 @@ export default function ClubList() {
   const [clubs, setClubs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ name: '', description: '' });
+  const [form, setForm] = useState({ name: '', description: '', headEmail: '', coHeadEmail: '', facultyCoordinatorEmail: '' });
   const [error, setError] = useState('');
 
   const load = () => client.get('/clubs').then((res) => setClubs(res.data.clubs)).finally(() => setLoading(false));
@@ -21,7 +21,7 @@ export default function ClubList() {
     try {
       await client.post('/clubs', form);
       setShowForm(false);
-      setForm({ name: '', description: '' });
+      setForm({ name: '', description: '', headEmail: '', coHeadEmail: '', facultyCoordinatorEmail: '' });
       load();
     } catch (err) {
       setError(err.response?.data?.message || 'Could not create the club.');
@@ -58,12 +58,13 @@ export default function ClubList() {
       )}
 
       {showForm && (
-        <div className="fixed inset-0 bg-black/30 flex items-center justify-center p-4 z-50">
-          <div className="bg-surface rounded-xl p-6 w-full max-w-md">
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center p-4 z-50 overflow-y-auto">
+          <div className="bg-surface rounded-xl p-6 w-full max-w-md my-8">
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-display font-semibold text-lg">Create club</h2>
               <button onClick={() => setShowForm(false)} aria-label="Close"><X size={18} /></button>
             </div>
+            <p className="text-xs text-text-muted mb-4">Use this once the head, co-head, and faculty coordinator have agreed to the idea in person.</p>
             <form onSubmit={handleCreate} className="flex flex-col gap-3">
               {error && <p className="text-xs text-red-500">{error}</p>}
               <label className="text-xs font-medium text-text-muted mb-1 block">Club name</label>
@@ -71,6 +72,15 @@ export default function ClubList() {
                 className="px-3 py-2 rounded-lg border border-black/10 text-sm outline-none focus:border-accent" />
               <textarea placeholder="Description" rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })}
                 className="px-3 py-2 rounded-lg border border-black/10 text-sm outline-none focus:border-accent resize-none" />
+              <label className="text-xs font-medium text-text-muted mb-1 block">Faculty coordinator email</label>
+              <input required type="email" placeholder="faculty@ccoew.edu" value={form.facultyCoordinatorEmail} onChange={(e) => setForm({ ...form, facultyCoordinatorEmail: e.target.value })}
+                className="px-3 py-2 rounded-lg border border-black/10 text-sm outline-none focus:border-accent" />
+              <label className="text-xs font-medium text-text-muted mb-1 block">Head coordinator email</label>
+              <input required type="email" placeholder="head@ccoew.edu" value={form.headEmail} onChange={(e) => setForm({ ...form, headEmail: e.target.value })}
+                className="px-3 py-2 rounded-lg border border-black/10 text-sm outline-none focus:border-accent" />
+              <label className="text-xs font-medium text-text-muted mb-1 block">Co-head email (optional)</label>
+              <input type="email" placeholder="cohead@ccoew.edu" value={form.coHeadEmail} onChange={(e) => setForm({ ...form, coHeadEmail: e.target.value })}
+                className="px-3 py-2 rounded-lg border border-black/10 text-sm outline-none focus:border-accent" />
               <button className="bg-accent text-white text-sm font-medium py-2.5 rounded-lg hover:bg-accent/90">Create</button>
             </form>
           </div>
@@ -79,5 +89,3 @@ export default function ClubList() {
     </div>
   );
 }
-
-
