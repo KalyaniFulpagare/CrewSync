@@ -164,6 +164,8 @@ export default function ClubHub() {
     ['HEAD_COORDINATOR', 'JOINT_HEAD_COORDINATOR'].includes(coordinator.position)
   );
   const isAnyTeamMember = hierarchy.teams.some((team) => team.members.some((member) => String(member.userId?._id) === String(user?.id)));
+  const isTeamLead = hierarchy.teams.some((team) => team.members.some((member) => String(member.userId?._id) === String(user?.id) && ['HEAD', 'CO_HEAD'].includes(member.role)));
+  const canViewDrives = isHeadOrJointHead || isTeamLead;
   const canCreateEvent = isHeadOrJointHead || isAnyTeamMember;
   const canManageTeam = (team) => isCoordinator || team.members.some((member) => String(member.userId?._id) === String(user?.id) && ['HEAD', 'CO_HEAD'].includes(member.role));
   const canViewHeatmap = isCoordinator || hierarchy.teams.some(canManageTeam);
@@ -231,13 +233,13 @@ export default function ClubHub() {
             )}
           </div>
 
-          {isHeadOrJointHead && (
+          {canViewDrives && (
             <div className="bg-surface border border-black/5 rounded-xl p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="font-display font-semibold text-text flex items-center gap-2"><ClipboardList size={16} className="text-accent" /> Recruitment drives</h2>
-                <button onClick={() => setShowDriveForm(true)} className="flex items-center gap-1.5 text-xs font-medium text-accent">
+                {isHeadOrJointHead && <button onClick={() => setShowDriveForm(true)} className="flex items-center gap-1.5 text-xs font-medium text-accent">
                   <Plus size={14} /> New drive
-                </button>
+                </button>}
               </div>
               {drives.length === 0 ? (
                 <p className="text-sm text-text-muted">No recruitment drives yet.</p>
@@ -425,3 +427,6 @@ export default function ClubHub() {
     </div>
   );
 }
+
+
+

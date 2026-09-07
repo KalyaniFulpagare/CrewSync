@@ -49,10 +49,17 @@ exports.createClub = async (req, res) => {
 
 exports.listMyClubs = async (req, res) => {
   try {
-    const clubMemberships = await ClubMembership.find({ userId: req.user._id });
-    const teamMemberships = await TeamMembership.find({ userId: req.user._id, status: 'ACCEPTED' }).populate('teamId');
+    const [clubMemberships, teamMemberships, createdClubs] = await Promise.all([
+      ClubMembership.find({ userId: req.user._id }),
+      TeamMembership.find({ userId: req.user._id, status: 'ACCEPTED' }).populate('teamId'),
+      Club.find({ createdBy: req.user._id })
+    ]);
     const clubIdsFromTeams = teamMemberships.map((tm) => tm.teamId?.clubId).filter(Boolean);
-    const allClubIds = [...new Set([...clubMemberships.map((m) => String(m.clubId)), ...clubIdsFromTeams.map(String)])];
+    const allClubIds = [...new Set([
+      ...clubMemberships.map((m) => String(m.clubId)),
+      ...clubIdsFromTeams.map(String),
+      ...createdClubs.map((c) => String(c._id))
+    ])];
     const clubs = await Club.find({ _id: { $in: allClubIds } });
     res.status(200).json({ success: true, clubs });
   } catch (err) {
@@ -238,3 +245,4 @@ exports.removeTeamMember = async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 };
+

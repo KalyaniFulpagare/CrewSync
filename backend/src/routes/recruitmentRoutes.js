@@ -4,7 +4,7 @@ const {
   applyToDrive, listMyApplications, listDriveApplications, updateApplicationStatus
 } = require('../controllers/recruitmentController');
 const { protect } = require('../middleware/auth');
-const { requireClubCoordinator, requireDriveCoordinator, requireDriveCoordinatorOrTeamLead } = require('../middleware/authorize');
+const { requireClubCoordinator, requireDriveCoordinator, requireDriveCoordinatorOrTeamLead, requireClubDriveViewer } = require('../middleware/authorize');
 const router = express.Router();
 
 router.use(protect);
@@ -15,9 +15,10 @@ router.post('/drives/:driveId/apply', applyToDrive);
 router.get('/my-applications', listMyApplications);
 
 router.post('/clubs/:clubId/drives', requireClubCoordinator, createDrive);
-router.get('/clubs/:clubId/drives', requireClubCoordinator, listClubDrives);
+router.get('/clubs/:clubId/drives', requireClubDriveViewer, listClubDrives);
 router.patch('/drives/:driveId/status', requireDriveCoordinator, updateDriveStatus);
 router.get('/drives/:driveId/applications', requireDriveCoordinatorOrTeamLead, listDriveApplications);
 router.patch('/drives/:driveId/applications/:applicationId/status', requireDriveCoordinatorOrTeamLead, updateApplicationStatus);
 
 module.exports = router;
+

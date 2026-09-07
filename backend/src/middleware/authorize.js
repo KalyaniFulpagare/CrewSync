@@ -138,6 +138,27 @@ exports.requireClubMember = async (req, res, next) => {
   }
 };
 
+exports.requireClubDriveViewer = async (req, res, next) => {
+  try {
+    const clubId = req.params.clubId;
+    const coordinatorMembership = await ClubMembership.findOne({ clubId, userId: req.user._id, position: { $in: OPERATIONAL_POSITIONS } });
+    if (coordinatorMembership) return next();
+
+    const teams = await Team.find({ clubId });
+    const leadMembership = await TeamMembership.findOne({
+      teamId: { $in: teams.map((t) => t._id) },
+      userId: req.user._id,
+      role: { $in: ['HEAD', 'CO_HEAD'] },
+      status: 'ACCEPTED'
+    });
+    if (leadMembership) return next();
+
+    return res.status(403).json({ success: false, message: 'Only club coordinators and team leads can view recruitment drives.' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
 exports.requireDriveCoordinator = async (req, res, next) => {
   try {
     const RecruitmentDrive = require('../models/RecruitmentDrive');
@@ -241,4 +262,5 @@ exports.requireFacultyAdmin = (req, res, next) => {
   }
   next();
 };
+
 
