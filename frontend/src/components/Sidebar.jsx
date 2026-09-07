@@ -13,7 +13,7 @@ const linkClasses = ({ isActive }) =>
 export default function Sidebar() {
   const { user, logout } = useAuth();
   const [inviteCount, setInviteCount] = useState(0);
-  const isFacultyAdmin = user?.role === 'FACULTY_ADMIN';
+  const isFacultyAdmin = user?.role === 'FACULTY_ADMIN' || user?.role === 'FACULTY';
 
   useEffect(() => {
     if (isFacultyAdmin) return;
@@ -51,3 +51,4 @@ export default function Sidebar() {
     </aside>
   );
 }
+

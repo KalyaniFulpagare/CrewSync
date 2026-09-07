@@ -15,6 +15,7 @@ export default function ClubHub() {
   const [heatmap, setHeatmap] = useState([]);
   const [events, setEvents] = useState([]);
   const [activeTeamId, setActiveTeamId] = useState(null);
+  const [loadError, setLoadError] = useState('');
 
   const [showTeamForm, setShowTeamForm] = useState(false);
   const [teamName, setTeamName] = useState('');
@@ -34,27 +35,32 @@ export default function ClubHub() {
   const [driveForm, setDriveForm] = useState({ title: '', description: '', teams: [], questions: [{ ...emptyQuestion }] });
 
   const load = useCallback(async () => {
-    const [hierarchyRes, eventsRes] = await Promise.all([
-      client.get(`/clubs/${clubId}/hierarchy`),
-      client.get(`/clubs/${clubId}/events`)
-    ]);
-    const isCoordinator = hierarchyRes.data.coordinators.some((coordinator) => String(coordinator.userId?._id) === String(user?.id));
-    const isHeadOrJointHead = hierarchyRes.data.coordinators.some((coordinator) =>
-      String(coordinator.userId?._id) === String(user?.id) &&
-      ['HEAD_COORDINATOR', 'JOINT_HEAD_COORDINATOR'].includes(coordinator.position)
-    );
-    const isTeamLead = hierarchyRes.data.teams.some((team) => team.members.some((member) => String(member.userId?._id) === String(user?.id) && ['HEAD', 'CO_HEAD'].includes(member.role)));
-    const heatmapRes = (isCoordinator || isTeamLead)
-      ? await client.get(`/clubs/${clubId}/heatmap`).catch(() => ({ data: { heatmap: [] } }))
-      : { data: { heatmap: [] } };
-    const drivesRes = isHeadOrJointHead
-      ? await client.get(`/recruitment/clubs/${clubId}/drives`).catch(() => ({ data: { drives: [] } }))
-      : { data: { drives: [] } };
-    setHierarchy(hierarchyRes.data);
-    setHeatmap(heatmapRes.data.heatmap);
-    setEvents(eventsRes.data.events);
-    setDrives(drivesRes.data.drives);
-    if (hierarchyRes.data.teams.length && !activeTeamId) setActiveTeamId(hierarchyRes.data.teams[0]._id);
+    try {
+      const [hierarchyRes, eventsRes] = await Promise.all([
+        client.get(`/clubs/${clubId}/hierarchy`),
+        client.get(`/clubs/${clubId}/events`)
+      ]);
+      const isCoordinator = hierarchyRes.data.coordinators.some((coordinator) => String(coordinator.userId?._id) === String(user?.id));
+      const isHeadOrJointHead = hierarchyRes.data.coordinators.some((coordinator) =>
+        String(coordinator.userId?._id) === String(user?.id) &&
+        ['HEAD_COORDINATOR', 'JOINT_HEAD_COORDINATOR'].includes(coordinator.position)
+      );
+      const isTeamLead = hierarchyRes.data.teams.some((team) => team.members.some((member) => String(member.userId?._id) === String(user?.id) && ['HEAD', 'CO_HEAD'].includes(member.role)));
+      const heatmapRes = (isCoordinator || isTeamLead)
+        ? await client.get(`/clubs/${clubId}/heatmap`).catch(() => ({ data: { heatmap: [] } }))
+        : { data: { heatmap: [] } };
+      const drivesRes = isHeadOrJointHead
+        ? await client.get(`/recruitment/clubs/${clubId}/drives`).catch(() => ({ data: { drives: [] } }))
+        : { data: { drives: [] } };
+      setHierarchy(hierarchyRes.data);
+      setHeatmap(heatmapRes.data.heatmap);
+      setEvents(eventsRes.data.events);
+      setDrives(drivesRes.data.drives);
+      setLoadError('');
+      if (hierarchyRes.data.teams.length && !activeTeamId) setActiveTeamId(hierarchyRes.data.teams[0]._id);
+    } catch (err) {
+      setLoadError(err.response?.data?.message || 'Could not load this club.');
+    }
   }, [clubId, user?.id]);
 
   useEffect(() => { load(); }, [load]);
@@ -149,6 +155,7 @@ export default function ClubHub() {
     }
   };
 
+  if (loadError) return <div className="p-8 max-w-2xl mx-auto text-sm text-text-muted">{loadError}. <Link to="/clubs" className="text-accent font-medium">Back to your clubs</Link></div>;
   if (!hierarchy) return <div className="p-8 text-text-muted text-sm">Loading...</div>;
 
   const isCoordinator = hierarchy.coordinators.some((coordinator) => String(coordinator.userId?._id) === String(user?.id));
@@ -156,6 +163,8 @@ export default function ClubHub() {
     String(coordinator.userId?._id) === String(user?.id) &&
     ['HEAD_COORDINATOR', 'JOINT_HEAD_COORDINATOR'].includes(coordinator.position)
   );
+  const isAnyTeamMember = hierarchy.teams.some((team) => team.members.some((member) => String(member.userId?._id) === String(user?.id)));
+  const canCreateEvent = isHeadOrJointHead || isAnyTeamMember;
   const canManageTeam = (team) => isCoordinator || team.members.some((member) => String(member.userId?._id) === String(user?.id) && ['HEAD', 'CO_HEAD'].includes(member.role));
   const canViewHeatmap = isCoordinator || hierarchy.teams.some(canManageTeam);
 
@@ -207,9 +216,11 @@ export default function ClubHub() {
           <div className="bg-surface border border-black/5 rounded-xl p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-display font-semibold text-text">Events</h2>
-              <button onClick={() => setShowEventForm(true)} className="flex items-center gap-1.5 text-xs font-medium text-accent">
-                <Plus size={14} /> New event
-              </button>
+              {canCreateEvent && (
+                <button onClick={() => setShowEventForm(true)} className="flex items-center gap-1.5 text-xs font-medium text-accent">
+                  <Plus size={14} /> New event
+                </button>
+              )}
             </div>
             {events.length === 0 ? (
               <p className="text-sm text-text-muted">No events yet.</p>
@@ -414,5 +425,3 @@ export default function ClubHub() {
     </div>
   );
 }
-
-
