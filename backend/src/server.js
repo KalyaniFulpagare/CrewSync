@@ -1,4 +1,4 @@
-require('dotenv').config();
+﻿require('dotenv').config();
 const express = require('express');
 const http = require('http');
 const cors = require('cors');
@@ -8,6 +8,7 @@ const jwt = require('jsonwebtoken');
 const rateLimit = require('express-rate-limit');
 const { Server } = require('socket.io');
 const connectDB = require('./config/db');
+const mongoSanitize = require('express-mongo-sanitize');
 
 const User = require('./models/User');
 const ClubMembership = require('./models/ClubMembership');
@@ -31,6 +32,7 @@ app.set('io', io);
 app.use(helmet());
 app.use(cors({ origin: process.env.CLIENT_ORIGIN || 'http://localhost:3000' }));
 app.use(express.json());
+app.use(mongoSanitize());
 if (process.env.NODE_ENV !== 'test') app.use(morgan('dev'));
 
 const authLimiter = rateLimit({ windowMs: 60 * 1000, max: 30 });
@@ -169,3 +171,4 @@ if (require.main === module) {
 }
 
 module.exports = { app, server, io };
+
