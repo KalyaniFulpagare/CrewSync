@@ -10,7 +10,11 @@ client.interceptors.response.use(
   (response) => response,
   (error) => {
     const message = error.response?.data?.message || 'Something went wrong. Please try again.';
-    window.dispatchEvent(new CustomEvent('api-error', { detail: message }));
+    if (error.response?.status === 401) {
+      window.dispatchEvent(new CustomEvent('auth-expired'));
+    } else {
+      window.dispatchEvent(new CustomEvent('api-error', { detail: message }));
+    }
     return Promise.reject(error);
   }
 );

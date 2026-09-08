@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+﻿import React, { createContext, useContext, useEffect, useState } from 'react';
 import client from '../api/client';
 
 const AuthContext = createContext(null);
@@ -7,10 +7,18 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const logout = () => { localStorage.removeItem('crewsync_token'); setUser(null); };
+
   useEffect(() => {
     const token = localStorage.getItem('crewsync_token');
     if (!token) { setLoading(false); return; }
     client.get('/auth/me').then((res) => setUser(res.data.user)).catch(() => localStorage.removeItem('crewsync_token')).finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    const handler = () => logout();
+    window.addEventListener('auth-expired', handler);
+    return () => window.removeEventListener('auth-expired', handler);
   }, []);
 
   const login = async (email, password) => {
@@ -24,8 +32,6 @@ export function AuthProvider({ children }) {
     localStorage.setItem('crewsync_token', res.data.token);
     setUser(res.data.user);
   };
-
-  const logout = () => { localStorage.removeItem('crewsync_token'); setUser(null); };
 
   return <AuthContext.Provider value={{ user, loading, login, register, logout }}>{children}</AuthContext.Provider>;
 }
