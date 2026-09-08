@@ -167,7 +167,7 @@ export default function ClubHub() {
   const isTeamLead = hierarchy.teams.some((team) => team.members.some((member) => String(member.userId?._id) === String(user?.id) && ['HEAD', 'CO_HEAD'].includes(member.role)));
   const canViewDrives = isHeadOrJointHead || isTeamLead;
   const canCreateEvent = isHeadOrJointHead || isAnyTeamMember;
-  const canManageTeam = (team) => isCoordinator || team.members.some((member) => String(member.userId?._id) === String(user?.id) && ['HEAD', 'CO_HEAD'].includes(member.role));
+  const canManageTeam = (team) => isHeadOrJointHead || team.members.some((member) => String(member.userId?._id) === String(user?.id) && ['HEAD', 'CO_HEAD'].includes(member.role));
   const canViewHeatmap = isCoordinator || hierarchy.teams.some(canManageTeam);
 
   return (
@@ -427,6 +427,7 @@ export default function ClubHub() {
     </div>
   );
 }
+
 
 
 
