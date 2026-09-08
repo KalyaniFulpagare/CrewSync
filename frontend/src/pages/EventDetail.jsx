@@ -22,6 +22,8 @@ export default function EventDetail() {
   const [activity, setActivity] = useState([]);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
+  const [conflictedTaskIds, setConflictedTaskIds] = useState(new Set());
+  const [clubAccess, setClubAccess] = useState({ isHeadOrJointHead: false, leadTeamIds: [] });
 
   const [taskForm, setTaskForm] = useState({ title: '', description: '', teamId: '', dueDate: '', estimatedHours: 2, dependsOn: [] });
   const [suggestion, setSuggestion] = useState(null);
@@ -30,22 +32,49 @@ export default function EventDetail() {
   const [editingEvent, setEditingEvent] = useState(false);
   const [eventEditForm, setEventEditForm] = useState(null);
 
+  const refreshTasks = useCallback(async () => {
+    const [taskRes, insightRes] = await Promise.all([client.get(`/tasks/${id}`), client.get(`/events/${id}/insights`)]);
+    const freshTasks = taskRes.data.tasks;
+    const uniqueAssignees = [...new Set(freshTasks.map((t) => t.assignedTo?._id).filter(Boolean))];
+    const conflictResults = await Promise.all(
+      uniqueAssignees.map((uid) => client.get(`/tasks/${id}/conflicts/${uid}`).catch(() => ({ data: { conflicts: [] } })))
+    );
+    const ids = new Set();
+    conflictResults.forEach((r) => r.data.conflicts.forEach((c) => c.tasks.forEach((t) => ids.add(String(t.id)))));
+    setTasks(freshTasks);
+    setInsights(insightRes.data);
+    setConflictedTaskIds(ids);
+  }, [id]);
+
   const loadAll = useCallback(async () => {
-    const [eventRes, taskRes, insightRes, activityRes, commentRes] = await Promise.all([
+    const [eventRes, activityRes, commentRes] = await Promise.all([
       client.get(`/events/${id}`),
-      client.get(`/tasks/${id}`),
-      client.get(`/events/${id}/insights`),
       client.get(`/activity/${id}`),
       client.get(`/comments/${id}`)
     ]);
     setEvent(eventRes.data.event);
     setMembers(eventRes.data.members);
     setTeams(eventRes.data.teams || []);
-    setTasks(taskRes.data.tasks);
-    setInsights(insightRes.data);
     setActivity(activityRes.data.logs);
     setComments(commentRes.data.comments);
-  }, [id]);
+    await refreshTasks();
+
+    const clubId = eventRes.data.event.clubId?._id;
+    if (clubId) {
+      try {
+        const hierarchyRes = await client.get(`/clubs/${clubId}/hierarchy`);
+        const isHeadOrJointHead = hierarchyRes.data.coordinators.some((c) =>
+          String(c.userId?._id) === String(user?.id) && ['HEAD_COORDINATOR', 'JOINT_HEAD_COORDINATOR'].includes(c.position)
+        );
+        const leadTeamIds = hierarchyRes.data.teams
+          .filter((t) => t.members.some((m) => String(m.userId?._id) === String(user?.id) && ['HEAD', 'CO_HEAD'].includes(m.role)))
+          .map((t) => String(t._id));
+        setClubAccess({ isHeadOrJointHead, leadTeamIds });
+      } catch {
+        setClubAccess({ isHeadOrJointHead: false, leadTeamIds: [] });
+      }
+    }
+  }, [id, refreshTasks, user?.id]);
 
   useEffect(() => { loadAll(); }, [loadAll]);
 
@@ -71,9 +100,7 @@ export default function EventDetail() {
         throw err;
       }
     }
-    const [taskRes, insightRes] = await Promise.all([client.get(`/tasks/${id}`), client.get(`/events/${id}/insights`)]);
-    setTasks(taskRes.data.tasks);
-    setInsights(insightRes.data);
+    await refreshTasks();
   };
 
   const handleCreateTask = async (e) => {
@@ -81,9 +108,7 @@ export default function EventDetail() {
     await client.post(`/tasks/${id}`, taskForm);
     setTaskForm({ title: '', description: '', teamId: '', dueDate: '', estimatedHours: 2, dependsOn: [] });
     setSuggestion(null);
-    const [taskRes, insightRes] = await Promise.all([client.get(`/tasks/${id}`), client.get(`/events/${id}/insights`)]);
-    setTasks(taskRes.data.tasks);
-    setInsights(insightRes.data);
+    await refreshTasks();
   };
 
   const handleSaveTaskEdit = async (e) => {
@@ -93,18 +118,14 @@ export default function EventDetail() {
       dueDate: editingTask.dueDate, estimatedHours: editingTask.estimatedHours
     });
     setEditingTask(null);
-    const [taskRes, insightRes] = await Promise.all([client.get(`/tasks/${id}`), client.get(`/events/${id}/insights`)]);
-    setTasks(taskRes.data.tasks);
-    setInsights(insightRes.data);
+    await refreshTasks();
   };
 
   const handleDeleteTask = async (taskId) => {
     if (!confirm('Delete this task? This cannot be undone.')) return;
     try {
       await client.delete(`/tasks/item/${taskId}`);
-      const [taskRes, insightRes] = await Promise.all([client.get(`/tasks/${id}`), client.get(`/events/${id}/insights`)]);
-      setTasks(taskRes.data.tasks);
-      setInsights(insightRes.data);
+      await refreshTasks();
     } catch (err) {
       alert(err.response?.data?.message || 'Could not delete this task.');
     }
@@ -142,9 +163,12 @@ export default function EventDetail() {
   };
 
   const handleAssign = async (taskId, userId) => {
-    await client.patch(`/tasks/item/${taskId}/assign`, { userId });
-    const taskRes = await client.get(`/tasks/${id}`);
-    setTasks(taskRes.data.tasks);
+    try {
+      await client.patch(`/tasks/item/${taskId}/assign`, { userId });
+      await refreshTasks();
+    } catch (err) {
+      alert(err.response?.data?.message || 'Could not assign this task.');
+    }
   };
 
   const handleInvite = async (e) => {
@@ -192,6 +216,12 @@ export default function EventDetail() {
   const criticalTaskIds = new Set((insights.criticalPath || []).filter((item) => item.isCritical).map((item) => String(item.taskId)));
   const formatDate = (date) => new Date(date).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' });
 
+  const canAssignTask = (task) => {
+    if (clubAccess.isHeadOrJointHead) return true;
+    const taskTeamId = task.teamId?._id || task.teamId;
+    return !!taskTeamId && clubAccess.leadTeamIds.includes(String(taskTeamId));
+  };
+
   return (
     <div className="p-6 sm:p-8 max-w-7xl mx-auto">
       <button onClick={() => navigate(-1)} className="text-xs text-text-muted hover:text-text mb-4">Back to events</button>
@@ -203,7 +233,7 @@ export default function EventDetail() {
             <span className="text-[11px] font-semibold px-2 py-1 rounded-full bg-paper text-text-muted">{event.status.toLowerCase()}</span>
           </div>
           {event.description && <p className="max-w-2xl text-sm text-text-muted">{event.description}</p>}
-          <p className="mt-2 text-xs text-text-muted">{formatDate(event.eventDate)}{event.venue ? ` Â· ${event.venue}` : ''}{event.budget ? ` Â· Rs. ${event.budget}` : ''}</p>
+          <p className="mt-2 text-xs text-text-muted">{formatDate(event.eventDate)}{event.venue ? ` · ${event.venue}` : ''}{event.budget ? ` · Rs. ${event.budget}` : ''}</p>
         </div>
         <div className="flex gap-2 shrink-0">
           {isHost && <button onClick={openEventEdit} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-black/10 text-xs font-medium hover:border-accent"><Pencil size={14} /> Edit event</button>}
@@ -239,7 +269,19 @@ export default function EventDetail() {
               </label>}
             </form>
 
-            {tasks.length === 0 ? <p className="text-sm text-text-muted py-3">No tasks yet. Add the first one above.</p> : <TaskBoard tasks={tasks} onStatusChange={handleStatusChange} onAssign={handleAssign} members={acceptedMembers.map((member) => member.userId).filter(Boolean)} onEdit={setEditingTask} onDelete={handleDeleteTask} isCritical={(taskId) => criticalTaskIds.has(String(taskId))} hasConflict={false} />}
+            {tasks.length === 0 ? <p className="text-sm text-text-muted py-3">No tasks yet. Add the first one above.</p> : (
+              <TaskBoard
+                tasks={tasks}
+                onStatusChange={handleStatusChange}
+                onAssign={handleAssign}
+                members={acceptedMembers.map((member) => member.userId).filter(Boolean)}
+                onEdit={setEditingTask}
+                onDelete={handleDeleteTask}
+                isCritical={(taskId) => criticalTaskIds.has(String(taskId))}
+                hasConflict={(taskId) => conflictedTaskIds.has(String(taskId))}
+                canAssignTask={canAssignTask}
+              />
+            )}
 
             {suggestion && (
               <div className="mt-4 rounded-lg bg-accent-soft p-3">
@@ -261,7 +303,7 @@ export default function EventDetail() {
               {comments.length === 0 ? <p className="text-sm text-text-muted">No comments yet.</p> : comments.map((comment) => (
                 <div key={comment._id} className="text-sm">
                   <span className="font-medium text-text">{comment.userId?.name || 'Member'}</span>
-                  <span className="text-text-muted"> Â· {new Date(comment.createdAt).toLocaleString()}</span>
+                  <span className="text-text-muted"> · {new Date(comment.createdAt).toLocaleString()}</span>
                   <p className="text-text mt-0.5">{comment.text}</p>
                 </div>
               ))}
@@ -344,6 +386,3 @@ export default function EventDetail() {
     </div>
   );
 }
-
-
-

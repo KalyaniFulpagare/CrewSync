@@ -8,14 +8,14 @@ const statusColors = {
   BLOCKED: 'bg-red-50 text-danger'
 };
 
-export default function TaskRow({ task, onStatusChange, onAssign, members = [], onEdit, onDelete, isCritical, hasConflict }) {
+export default function TaskRow({ task, onStatusChange, onAssign, members = [], onEdit, onDelete, isCritical, hasConflict, canAssign = true }) {
   return (
     <div className="flex items-center justify-between gap-3 py-2.5 border-b border-black/5 last:border-0">
       <div className="min-w-0">
         <div className="flex items-center gap-2">
           <p className="text-sm font-medium text-text truncate">{task.title}</p>
           {isCritical && <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-accent-soft text-accent shrink-0">critical path</span>}
-          {hasConflict && <AlertCircle size={14} className="text-warning shrink-0" />}
+          {hasConflict && <AlertCircle size={14} className="text-warning shrink-0" title="This person is overloaded on this day - too many hours due at once" />}
         </div>
         <p className="text-xs text-text-muted">
           {task.teamId?.name && `${task.teamId.name} · `}{task.assignedTo?.name || 'Unassigned'} · due {new Date(task.dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} · {task.estimatedHours}h
@@ -23,15 +23,21 @@ export default function TaskRow({ task, onStatusChange, onAssign, members = [], 
         {task.description && <p className="text-xs text-text-muted mt-1 line-clamp-2">{task.description}</p>}
       </div>
       <div className="flex items-center gap-1.5 shrink-0">
-        <select
-          value={task.assignedTo?._id || ''}
-          onChange={(e) => onAssign(task._id, e.target.value || null)}
-          aria-label={`Assign ${task.title}`}
-          className="max-w-28 text-xs px-2 py-1 rounded-md border border-black/10 bg-white text-text-muted outline-none"
-        >
-          <option value="">Unassigned</option>
-          {members.map((member) => <option key={member._id} value={member._id}>{member.name}</option>)}
-        </select>
+        {canAssign ? (
+          <select
+            value={task.assignedTo?._id || ''}
+            onChange={(e) => onAssign(task._id, e.target.value || null)}
+            aria-label={`Assign ${task.title}`}
+            className="max-w-28 text-xs px-2 py-1 rounded-md border border-black/10 bg-white text-text-muted outline-none"
+          >
+            <option value="">Unassigned</option>
+            {members.map((member) => <option key={member._id} value={member._id}>{member.name}</option>)}
+          </select>
+        ) : (
+          <span className="max-w-28 truncate text-xs px-2 py-1 text-text-muted" title="Only the club Head/Joint Head, or this task's team lead, can reassign it">
+            {task.assignedTo?.name || 'Unassigned'}
+          </span>
+        )}
         <select
           value={task.status}
           onChange={(e) => onStatusChange(task._id, e.target.value)}
@@ -48,5 +54,3 @@ export default function TaskRow({ task, onStatusChange, onAssign, members = [], 
     </div>
   );
 }
-
-

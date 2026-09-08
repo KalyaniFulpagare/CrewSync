@@ -2,18 +2,56 @@
 const EventMember = require('../models/EventMember');
 const Event = require('../models/Event');
 const Team = require('../models/Team');
+const ClubMembership = require('../models/ClubMembership');
+const TeamMembership = require('../models/TeamMembership');
 const logActivity = require('../utils/logActivity');
 const { suggestAssignee } = require('../utils/workloadAssignment');
 const { detectConflicts } = require('../utils/conflictDetector');
+
+const OPERATIONAL_POSITIONS = ['HEAD_COORDINATOR', 'JOINT_HEAD_COORDINATOR'];
+
+// Who is allowed to hand out task assignments, and how far their reach goes:
+// - Club Head/Joint Head Coordinator: anyone accepted onto the event.
+// - A team Head/Co-Head: only members of the specific team(s) they lead.
+// - Everyone else: no assignment authority at all.
+async function getAssignmentScope(assignerId, clubId) {
+  const clubMembership = await ClubMembership.findOne({ clubId, userId: assignerId, position: { $in: OPERATIONAL_POSITIONS } });
+  if (clubMembership) return { scope: 'CLUB_WIDE' };
+
+  const teams = await Team.find({ clubId });
+  const leadMemberships = await TeamMembership.find({
+    teamId: { $in: teams.map((t) => t._id) },
+    userId: assignerId,
+    role: { $in: ['HEAD', 'CO_HEAD'] },
+    status: 'ACCEPTED'
+  });
+  if (leadMemberships.length > 0) return { scope: 'TEAM', teamIds: leadMemberships.map((m) => String(m.teamId)) };
+
+  return { scope: 'NONE' };
+}
+
+async function canAssign(assignerId, event, targetUserId) {
+  const scope = await getAssignmentScope(assignerId, event.clubId);
+  if (scope.scope === 'NONE') return false;
+  if (!targetUserId) return true; // unassigning still requires assignment authority, but no target-team check needed
+  if (scope.scope === 'CLUB_WIDE') return true;
+  const targetOnTeam = await TeamMembership.findOne({ teamId: { $in: scope.teamIds }, userId: targetUserId, status: 'ACCEPTED' });
+  return !!targetOnTeam;
+}
+
+const ASSIGN_DENIED_MESSAGE = 'Only the club Head/Joint Head Coordinator, or your team Head/Co-Head, can assign this task — and team leads can only assign within their own team.';
 
 exports.createTask = async (req, res) => {
   try {
     const { eventId } = req.params;
     const { teamId, dependsOn, assignedTo } = req.body;
 
+    const event = await Event.findById(eventId);
+    if (!event) return res.status(404).json({ success: false, message: 'Event not found.' });
+
     if (teamId) {
-      const [event, team] = await Promise.all([Event.findById(eventId), Team.findById(teamId)]);
-      if (!event || !team || String(team.clubId) !== String(event.clubId)) {
+      const team = await Team.findById(teamId);
+      if (!team || String(team.clubId) !== String(event.clubId)) {
         return res.status(400).json({ success: false, message: 'A task team must belong to this event\'s club.' });
       }
     }
@@ -30,6 +68,8 @@ exports.createTask = async (req, res) => {
     }
 
     if (assignedTo) {
+      const allowed = await canAssign(req.user._id, event, assignedTo);
+      if (!allowed) return res.status(403).json({ success: false, message: ASSIGN_DENIED_MESSAGE });
       const membership = await EventMember.findOne({ eventId, userId: assignedTo, status: 'ACCEPTED' });
       if (!membership) return res.status(400).json({ success: false, message: 'Tasks can only be assigned to accepted event members.' });
     }
@@ -113,6 +153,12 @@ exports.assignTask = async (req, res) => {
     const { userId } = req.body;
     const existingTask = await Task.findById(req.params.taskId);
     if (!existingTask) return res.status(404).json({ success: false, message: 'Task not found.' });
+
+    const event = await Event.findById(existingTask.eventId);
+    if (!event) return res.status(404).json({ success: false, message: 'Event not found.' });
+
+    const allowed = await canAssign(req.user._id, event, userId);
+    if (!allowed) return res.status(403).json({ success: false, message: ASSIGN_DENIED_MESSAGE });
 
     if (userId) {
       const membership = await EventMember.findOne({ eventId: existingTask.eventId, userId, status: 'ACCEPTED' });

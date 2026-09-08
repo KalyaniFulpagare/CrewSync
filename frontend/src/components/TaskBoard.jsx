@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import TaskRow from './TaskRow';
 
 const columns = [
@@ -8,7 +8,7 @@ const columns = [
   { status: 'DONE', label: 'Done', dot: 'bg-success' }
 ];
 
-export default function TaskBoard({ tasks, onStatusChange, isCritical, ...taskProps }) {
+export default function TaskBoard({ tasks, onStatusChange, isCritical, hasConflict, canAssignTask, ...taskProps }) {
   const handleDrop = (event, status) => {
     event.preventDefault();
     const taskId = event.dataTransfer.getData('text/plain');
@@ -29,7 +29,14 @@ export default function TaskBoard({ tasks, onStatusChange, isCritical, ...taskPr
             <div className="space-y-2">
               {groupedTasks.map((task) => (
                 <div key={task._id} draggable onDragStart={(event) => event.dataTransfer.setData('text/plain', String(task._id))} className="bg-surface rounded-lg px-3 shadow-sm border border-black/[0.04] cursor-grab active:cursor-grabbing">
-                  <TaskRow task={task} onStatusChange={onStatusChange} isCritical={typeof isCritical === 'function' ? isCritical(task._id) : isCritical} {...taskProps} />
+                  <TaskRow
+                    task={task}
+                    onStatusChange={onStatusChange}
+                    isCritical={typeof isCritical === 'function' ? isCritical(task._id) : isCritical}
+                    hasConflict={typeof hasConflict === 'function' ? hasConflict(task._id) : hasConflict}
+                    canAssign={typeof canAssignTask === 'function' ? canAssignTask(task) : true}
+                    {...taskProps}
+                  />
                 </div>
               ))}
               {groupedTasks.length === 0 && <p className="p-3 text-center text-xs text-text-muted border border-dashed border-black/10 rounded-lg">Drop tasks here</p>}
