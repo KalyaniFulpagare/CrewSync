@@ -25,6 +25,7 @@ export default function DriveApplications() {
   const [isCoordinator, setIsCoordinator] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [loadError, setLoadError] = useState('');
 
   const load = useCallback(() => {
     setLoading(true);
@@ -35,6 +36,9 @@ export default function DriveApplications() {
       setDrive(driveRes.data.drive);
       setApplications(appsRes.data.applications);
       setIsCoordinator(!!appsRes.data.isCoordinator);
+      setLoadError('');
+    }).catch((err) => {
+      setLoadError(err.response?.data?.message || 'Could not load this recruitment drive.');
     }).finally(() => setLoading(false));
   }, [driveId]);
 
@@ -61,6 +65,7 @@ export default function DriveApplications() {
     }
   };
 
+  if (loadError) return <div className="p-8 max-w-2xl mx-auto text-sm text-text-muted">{loadError}. <Link to="/recruitment" className="text-accent font-medium">Back to recruitment</Link></div>;
   if (loading || !drive) return <div className="p-8 text-text-muted text-sm">Loading...</div>;
 
   return (
